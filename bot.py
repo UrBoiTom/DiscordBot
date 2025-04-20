@@ -20,6 +20,7 @@ genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 
 client = discord.Client(intents=intents)
 client.tree = discord.app_commands.CommandTree(client)
@@ -53,6 +54,14 @@ async def tags(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
+@client.event
+async def on_member_remove(member):
+    if member.guild.system_channel:
+        prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
+        print(f"\n---------------------------------------------------------------------------\n{prompt}")
+        if(ai_provider == "ai_studio"):
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], 1)
+        await member.guild.system_channel.send(output)
 
 
 @client.event
