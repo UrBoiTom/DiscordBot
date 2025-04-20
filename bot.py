@@ -54,8 +54,10 @@ client = discord.Client(intents=intents)
 # Create a command tree for handling slash commands
 client.tree = discord.app_commands.CommandTree(client)
 
+# --- Configuration ---
 # Define the AI provider (currently set to Google AI Studio)
 ai_provider = "ai_studio"
+# Global flag to enable/disable adding available emojis to the AI prompt context. If True, the bot will fetch available emojis and instruct the AI on how to use them.
 emojis_enabled = True
 
 # --- Event Handlers ---
@@ -124,7 +126,7 @@ async def on_member_remove(member):
         print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}") # Log the event
         # Generate the goodbye message using the AI
         if(ai_provider == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"] + emoji_prompt(), 1) # Use model index 1 for goodbye
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"] + await emoji_prompt(), 1) # Use model index 1 for goodbye
         # Send the generated message
         await member.guild.system_channel.send(output)
 
@@ -153,7 +155,8 @@ async def on_message(message):
             print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}") # Log the full prompt
             # Generate AI response based on the provider
             if(ai_provider == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"] + emoji_prompt(), True)
+                # Generate the AI response, including emoji instructions if enabled
+                output = await aistudio_request(prompt, prompts["system_prompt"] + await emoji_prompt(), True)
         # Reply to the original message with the AI's output
         await message.reply(output)
 
@@ -168,7 +171,8 @@ async def on_message(message):
             # Generate the welcome message using the AI
             if(ai_provider == "ai_studio"):
                 # Use model index 1 for welcome message
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"] + emoji_prompt(), 1)
+                # Generate the AI response, including emoji instructions if enabled
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"] + await emoji_prompt(), 1)
         # Reply to the welcome message (which is usually a system message)
         await message.reply(output)
 
@@ -186,7 +190,7 @@ async def aistudio_request(prompt, system_prompt, modelIndex = 0):
 
     Returns:
         str: The generated text response from the AI, or an error message.
-    """# Adds emoji prompt to prompt
+    """
     try:
         # Attempt to generate content using the specified model
         response = genai_client.models.generate_content(
@@ -267,22 +271,44 @@ async def get_replies(message, string):
     return string
 
 async def emoji_prompt():
+    """
+    Fetches available client and application emojis and formats them into a string
+    with instructions for the AI on how to use them in its responses.
+
+    Returns:
+        str: A formatted string containing available emojis and usage instructions,
+             or an empty string if emojis_enabled is False.
+    """
+    # Only proceed if emoji usage is enabled globally
     if(emojis_enabled):
+        # Fetch emojis specific to this application (e.g., bot-owned emojis)
         application_emojis = await client.fetch_application_emojis() # Load emojis
+        # Initialize lists to store formatted emoji strings
         static_emojis = []
         animated_emojis = []
+
+        # Iterate through emojis the bot has access to in guilds it's in
         for emoji in client.emojis:
-            if emoji.animated:
-                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
-            else:
-                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
-        for emoji in application_emojis:
+            # Sort emojis into static and animated lists with Discord formatting
             if emoji.animated:
                 animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
             else:
                 static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
 
+        # Iterate through the application-specific emojis
+        for emoji in application_emojis:
+            # Sort emojis into static and animated lists with Discord formatting
+            if emoji.animated:
+                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
+            else:
+                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
+
+        # Construct the final prompt string with emoji lists and instructions
+        # This tells the AI which emojis are available and how to format them correctly.
         return f"## Available emojis:\nStatic emojis: {", ".join(static_emojis)}\nAnimated emojis: {", ".join(animated_emojis)}\nEMOJI USAGE INSTRUCTIONS:\n1. To use an emoji, type the emoji name WITH the syntax, exactly as shown above, or type a unicode emoji, For example: <:emoji:1234567890> or 😊\n3. Do not add backticks, quotes, or any other characters around the emoji code\n4. Type <:emoji_name:emoji_id> directly in your text where you want the emoji to appear\n5. Unicode emojis also work"
+    else:
+        # Return an empty string if emojis are disabled, so nothing is added to the AI prompt
+        return ""
 
 # --- Bot Execution ---
 # Run the bot using the client token from keys.json
