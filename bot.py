@@ -208,8 +208,8 @@ async def aistudio_request(prompt, system_prompt, modelIndex = 0):
             print(f"Trying next model index: {modelIndex + 1}")
             output = await aistudio_request(prompt, system_prompt, modelIndex + 1) # Pass system_prompt in recursive call
         except IndexError: # Catch index error from the recursive call immediately
-             print(f"\n------------------------- AI ERROR -------------------------\nError: No more models available to try after index {modelIndex}.")
-             output = "Sorry, I encountered an issue processing your request with all available AI models."
+            print(f"\n------------------------- AI ERROR -------------------------\nError: No more models available to try after index {modelIndex}.")
+            output = "Sorry, I encountered an issue processing your request with all available AI models."
         except Exception as final_e: # Catch any other error during retry
             print(f"\n------------------------- AI ERROR -------------------------\nError during retry: {final_e}")
             output = "Sorry, I encountered an unexpected error while processing your request."
@@ -253,7 +253,7 @@ async def get_replies(message, string):
                     print(f"Warning: Could not fetch referenced message {message.reference.message_id}. Stopping reply chain traversal.")
                     break
                 except discord.HTTPException as e:
-                     # Stop on other Discord API errors
+                    # Stop on other Discord API errors
                     print(f"Warning: Discord API error fetching message {message.reference.message_id}: {e}. Stopping reply chain traversal.")
                     break
 
@@ -261,7 +261,8 @@ async def get_replies(message, string):
         string = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}\n{string}"
 
     # Log the caching strategy used for debugging
-    print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}\n")
+    if(cachingLog != ""):
+        print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
     return string
 
 # --- Bot Execution ---
