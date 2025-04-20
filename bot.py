@@ -305,7 +305,7 @@ async def emoji_prompt():
 
         # Construct the final prompt string with emoji lists and instructions
         # This tells the AI which emojis are available and how to format them correctly.
-        return f"## Available emojis:\nStatic emojis: {", ".join(static_emojis)}\nAnimated emojis: {", ".join(animated_emojis)}\nEMOJI USAGE INSTRUCTIONS:\n1. To use an emoji, type the emoji name WITH the syntax, exactly as shown above, or type a unicode emoji, For example: <:emoji:1234567890> or 😊\n3. Do not add backticks, quotes, or any other characters around the emoji code, ALWAYS STRICTLY follow the syntax above.\n4. Type <:emoji_name:emoji_id> directly in your text where you want the emoji to appear. ALWAYS use BOTH sets of colons\n5. Unicode emojis also work.\n6. Use the right emoji for the situation, and avoid emojis that are inappropriate, such as ones with explicit words in the name in a non-explicit conversation.\nEMOJI USE IS HIGHLY ENCOURAGED."
+        return f"## Available emojis:\nStatic emojis: {", ".join(static_emojis)}\nAnimated emojis: {", ".join(animated_emojis)}\n{prompts['emoji_prompt']}"
     else:
         # Return an empty string if emojis are disabled, so nothing is added to the AI prompt
         return ""
