@@ -4,6 +4,7 @@ import discord
 import json
 from google import genai
 from google.genai import types # type: ignore
+import re
 
 with open('keys.json') as f:
     keys = json.load(f)
@@ -66,7 +67,6 @@ async def on_message(message):
             print(prompt)
             if(ai_provider == "ai_studio"):
                 output = await aistudio_request(prompt, prompts["system_prompt"])
-            output = output.replace("Sender ID: 1361303108751458456\nSender Name: Riley\nMessage: ", "")
         await message.reply(output)
 
     if message.type == discord.MessageType.new_member:
@@ -75,7 +75,6 @@ async def on_message(message):
             print(f"\n---------------------------------------------------------------------------\n{prompt}")
             if(ai_provider == "ai_studio"):
                 output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], 1)
-            output = output.replace("Sender ID: 1361303108751458456\nSender Name: Riley\nMessage: ", "")
         await message.reply(output)
 
 async def aistudio_request(prompt, system_prompt, modelIndex = 0):
@@ -91,6 +90,7 @@ async def aistudio_request(prompt, system_prompt, modelIndex = 0):
     except Exception as e:
         print(f"\n---------------------------------------------------------------------------\nError: {e}")
         output = await aistudio_request(prompt, modelIndex+1)
+    output = re.sub("Sender ID: [0-9]+\nSender Name: [A-Za-z0-9#]+\nMessage: ", "", output)
     return output
 
 
