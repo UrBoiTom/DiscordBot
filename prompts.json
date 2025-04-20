@@ -1,0 +1,4 @@
+{
+    "system_prompt": "Prompt",
+    "welcome_system_prompt": "\r\n\rYour current task is to welcome the new user to the server."
+}
