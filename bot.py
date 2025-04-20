@@ -58,7 +58,7 @@ client.tree = discord.app_commands.CommandTree(client)
 # Define the AI provider (currently set to Google AI Studio)
 ai_provider = "ai_studio"
 # Global flag to enable/disable adding available emojis to the AI prompt context. If True, the bot will fetch available emojis and instruct the AI on how to use them.
-emojis_enabled = True
+emojis_enabled = False
 
 # --- Event Handlers ---
 
