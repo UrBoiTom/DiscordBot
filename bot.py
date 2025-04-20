@@ -51,6 +51,7 @@ async def tags(interaction: discord.Interaction):
     embed.add_field(name="/help", value="Displays this help message.", inline=False)
     embed.add_field(name="/tags", value="Sends the Danbooru tag group wiki link and optionally tags a user.", inline=False)
     embed.add_field(name="AI Features", value="To use the AI features, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the whole reply chain as context.", inline=False)
+    embed.add_field(name="AI-based join and leave messages", value="Activate automatically when a member joins or leaves.", inline=False)
     await interaction.response.send_message(embed=embed)
 
 
