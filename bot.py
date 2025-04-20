@@ -56,6 +56,7 @@ client.tree = discord.app_commands.CommandTree(client)
 
 # Define the AI provider (currently set to Google AI Studio)
 ai_provider = "ai_studio"
+emojis_enabled = True
 
 # --- Event Handlers ---
 
@@ -123,7 +124,7 @@ async def on_member_remove(member):
         print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}") # Log the event
         # Generate the goodbye message using the AI
         if(ai_provider == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], 1) # Use model index 1 for goodbye
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"] + emoji_prompt(), 1) # Use model index 1 for goodbye
         # Send the generated message
         await member.guild.system_channel.send(output)
 
@@ -152,7 +153,7 @@ async def on_message(message):
             print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}") # Log the full prompt
             # Generate AI response based on the provider
             if(ai_provider == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"])
+                output = await aistudio_request(prompt, prompts["system_prompt"] + emoji_prompt(), True)
         # Reply to the original message with the AI's output
         await message.reply(output)
 
@@ -167,7 +168,7 @@ async def on_message(message):
             # Generate the welcome message using the AI
             if(ai_provider == "ai_studio"):
                 # Use model index 1 for welcome message
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], 1)
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"] + emoji_prompt(), 1)
         # Reply to the welcome message (which is usually a system message)
         await message.reply(output)
 
@@ -185,7 +186,7 @@ async def aistudio_request(prompt, system_prompt, modelIndex = 0):
 
     Returns:
         str: The generated text response from the AI, or an error message.
-    """
+    """# Adds emoji prompt to prompt
     try:
         # Attempt to generate content using the specified model
         response = genai_client.models.generate_content(
@@ -264,6 +265,24 @@ async def get_replies(message, string):
     if(cachingLog != ""):
         print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
     return string
+
+async def emoji_prompt():
+    if(emojis_enabled):
+        application_emojis = await client.fetch_application_emojis() # Load emojis
+        static_emojis = []
+        animated_emojis = []
+        for emoji in client.emojis:
+            if emoji.animated:
+                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
+            else:
+                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
+        for emoji in application_emojis:
+            if emoji.animated:
+                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
+            else:
+                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
+
+        return f"## Available emojis:\nStatic emojis: {", ".join(static_emojis)}\nAnimated emojis: {", ".join(animated_emojis)}\nEMOJI USAGE INSTRUCTIONS:\n1. To use an emoji, type the emoji name WITH the syntax, exactly as shown above, or type a unicode emoji, For example: <:emoji:1234567890> or 😊\n3. Do not add backticks, quotes, or any other characters around the emoji code\n4. Type <:emoji_name:emoji_id> directly in your text where you want the emoji to appear\n5. Unicode emojis also work"
 
 # --- Bot Execution ---
 # Run the bot using the client token from keys.json
