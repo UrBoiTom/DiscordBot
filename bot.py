@@ -12,8 +12,8 @@ with open('keys.json') as f:
 with open('prompts.json') as f:
     prompts = json.load(f)
     f.close()
-with open('models.json') as f:
-    models = json.load(f)
+with open('variables.json') as f:
+    variables = json.load(f)
     f.close()
 
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
@@ -60,7 +60,7 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    if client.user in message.mentions:
+    if client.user in message.mentions or variables["bot_name"] in message.content:
         async with message.channel.typing(): 
             prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
             prompt = await get_replies(message, prompt)
@@ -80,7 +80,7 @@ async def on_message(message):
 async def aistudio_request(prompt, system_prompt, modelIndex = 0):
     try:
         response = genai_client.models.generate_content(
-            model=models["ai_studio"][modelIndex],
+            model=variables["models"]["ai_studio"][modelIndex],
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt
             ),
