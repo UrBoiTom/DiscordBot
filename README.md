@@ -1,6 +1,6 @@
 # DiscordBot
 
-## Installationa
+## Installation
 1. git clone this repository using the following command in a terminal window in the directory you would like to install the bot
 
     ```
@@ -16,3 +16,5 @@
 6. Run UpdateAndStart.bat to finish the installation and start the bot.
 ## Usage
 - Run start.bat or UpdateAndStart.bat to start the bot.
+***
+<div align="center"><strong><a href="https://github.com/Sorro123/DiscordBot">DiscordBot</a> by <a href="https://github.com/Sorro123">UrBoiTom_</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1">CC BY-NC-SA 4.0 <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" width="14"/><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" width="14"/><img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" width="14"/><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" width="14"/></a></strong></div>
