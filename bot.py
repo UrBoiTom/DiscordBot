@@ -60,7 +60,7 @@ async def on_message(message):
     if message.author == client.user:
         return
     
-    if client.user in message.mentions or variables["bot_name"] in message.content:
+    if client.user in message.mentions or client.user.display_name in message.content:
         async with message.channel.typing(): 
             prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
             prompt = await get_replies(message, prompt)
