@@ -175,3 +175,7 @@ cython_debug/
 
 # Virtual Environment
 bot-env/
+
+# Security
+/keys.json
+/prompts.json
