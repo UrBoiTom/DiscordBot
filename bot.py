@@ -221,7 +221,7 @@ async def aistudio_request(prompt, system_prompt, modelIndex = 0):
 
     # Clean up potential metadata leakage from the AI response (optional, but good practice)
     # This regex removes lines like "Sender ID: 12345..." from the start of the output
-    output = re.sub(r"^Sender ID: \d+\nSender Name: .+#?\d*\nMessage: ", "", output)
+    output = re.sub(r"(.|\n)*Message: ", "", output)
     return output
 
 
@@ -277,7 +277,7 @@ async def emoji_prompt():
 
     Returns:
         str: A formatted string containing available emojis and usage instructions,
-             or an empty string if emojis_enabled is False.
+            or an empty string if emojis_enabled is False.
     """
     # Only proceed if emoji usage is enabled globally
     if(emojis_enabled):
