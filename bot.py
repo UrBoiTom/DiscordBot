@@ -3,6 +3,7 @@ import json
 from google import genai
 from google.genai import types # type: ignore
 import re
+from datetime import timedelta
 
 # --- Configuration Loading ---
 
@@ -141,6 +142,9 @@ async def on_message(message):
     """
     # Ignore messages sent by the bot itself
     if message.author == client.user:
+        if(re.search(r"!Timeout <@[0-9]+>", message.content)):
+            member = message.guild.get_member(int(re.search(r"[0-9]+", re.search(r"!Timeout <@[0-9]+>", message.content).group(0)).group(0)))
+            await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
         return
 
     # --- AI Interaction Handling ---
