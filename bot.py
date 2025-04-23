@@ -21,7 +21,7 @@ def load_json(filename):
         FileNotFoundError: If the specified JSON file does not exist.
         json.JSONDecodeError: If the file is not valid JSON.
     """
-    filepath = f'{filename}.json' # Construct the full filepath
+    filepath = f'variables/{filename}.json' # Construct the full filepath
     try:
         with open(filepath) as f:
             return json.load(f)
@@ -38,7 +38,7 @@ def load_json(filename):
 # Load configuration files
 keys = load_json('keys')
 prompts = load_json('prompts')
-variables = load_json('variables')
+variables = load_json('general')
 
 # --- AI Client Initialization ---
 # Initialize the Google Generative AI client using the API key

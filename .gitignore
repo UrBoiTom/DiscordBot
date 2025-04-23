@@ -176,6 +176,9 @@ cython_debug/
 # Virtual Environment
 bot-env/
 
+#VSCode config
+/.vscode/
+
 # Security
-/keys.json
-/prompts.json
+variables/keys.json
+variables/prompts.json
