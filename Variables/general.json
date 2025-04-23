@@ -6,5 +6,10 @@
             "gemini-2.0-flash-exp",
             "gemini-exp-1206"
         ]
-    }
+    },
+    "emojis_enabled": false,
+    "default_ai_model_index": 0,
+    "welcome_goodbye_model_index": 1,
+    "timeout_duration_minutes": 5,
+    "timeout_reason": ""
 }
