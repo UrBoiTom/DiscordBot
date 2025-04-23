@@ -7,7 +7,7 @@
     git clone https://github.com/Sorro123/DiscordBot.git
     ```
 2. Install [python](https://www.python.org/downloads/)
-3. Rename keys.EXAMPLE.json and prompts.EXAMPLE.json to keys.json and prompts.json
+3. In the variables folder, rename keys.EXAMPLE.json and prompts.EXAMPLE.json to keys.json and prompts.json
 4. Add your own API keys to keys.json
     - Token from the bot section of your discord application, which you can find [here](https://discord.com/developers/applications) as client_key
         - If you don't already have a discord bot set up you will need to do that to complete this step. Also make sure to enable "Message Content Intent" under "Privileged Gateway Intents"
