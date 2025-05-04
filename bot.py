@@ -1,30 +1,15 @@
-"""
-Discord bot integrating with Google Generative AI for various features,
-including conversational AI, welcome/goodbye messages, and utility commands.
-"""
-
 import discord
 import json
 from google import genai
-from google.genai import types as genai_types #type:ignore
+from google.genai import types # type: ignore
 import re
 from datetime import timedelta
-import logging # Use standard logging
-import sys # For potential exit on config load failure
-
-# --- Constants ---
-CONFIG_DIR = 'variables' # Directory for configuration files
-
-# --- Logging Setup ---
-# Configure logging for better diagnostics
-logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
-logger = logging.getLogger(__name__)
 
 # --- Configuration Loading ---
 
-def load_json(filename: str) -> dict:
+def load_json(filename):
     """
-    Loads data from a JSON file located in the CONFIG_DIR.
+    Loads data from a JSON file.
 
     Args:
         filename (str): The name of the JSON file (without the .json extension).
@@ -35,501 +20,300 @@ def load_json(filename: str) -> dict:
     Raises:
         FileNotFoundError: If the specified JSON file does not exist.
         json.JSONDecodeError: If the file is not valid JSON.
-        SystemExit: If loading critical configuration fails.
     """
-    filepath = f'{CONFIG_DIR}/{filename}.json' # Construct the full filepath using constant
+    filepath = f'variables/{filename}.json' # Construct the full filepath
     try:
-        with open(filepath, 'r', encoding='utf-8') as f: # Specify encoding
+        with open(filepath) as f:
             return json.load(f)
     except FileNotFoundError:
-        logger.error(f"Configuration file '{filepath}' not found.")
+        print(f"Error: Configuration file '{filepath}' not found.")
+        # Depending on how critical these files are, you might want to exit here
+        # import sys
+        # sys.exit(1)
         raise # Re-raise the exception to halt execution if needed
     except json.JSONDecodeError as e:
-        logger.error(f"Could not decode JSON from '{filepath}'. Check format. Details: {e}")
+        print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
         raise # Re-raise the exception
 
-# --- Load Configuration ---
-try:
-    keys = load_json('keys')
-    prompts = load_json('prompts')
-    variables = load_json('general')
-except (FileNotFoundError, json.JSONDecodeError):
-    sys.exit("Exiting due to critical configuration loading errors.") # Exit if essential configs fail
+# Load configuration files
+keys = load_json('keys')
+prompts = load_json('prompts')
+variables = load_json('general')
 
 # --- AI Client Initialization ---
-try:
-    # Initialize the Google Generative AI client using the API key
-    genai_client = genai.Client(api_key=keys["ai_studio_key"])
-    logger.info("Google Generative AI client initialized.")
-except KeyError:
-    logger.error("API key 'ai_studio_key' is invalid.")
-    sys.exit("Exiting due to missing AI API key.")
-except Exception as e:
-    logger.error(f"Failed to initialize Google Generative AI client: {e}")
-    sys.exit("Exiting due to AI client initialization error.")
-
+# Initialize the Google Generative AI client using the API key
+genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
 # --- Discord Bot Setup ---
 # Define the intents (permissions) the bot needs
 intents = discord.Intents.default()
 intents.message_content = True # Required to read message content
-intents.members = True         # Required for member join/leave events and fetching members
+intents.members = True         # Required for member join/leave events
 
 # Initialize the Discord client with the specified intents
 client = discord.Client(intents=intents)
 # Create a command tree for handling slash commands
-# It's conventional to name this 'tree' directly if it's closely tied to the client
-tree = discord.app_commands.CommandTree(client)
+client.tree = discord.app_commands.CommandTree(client)
 
 # --- Configuration ---
-# Global flag to enable/disable adding available emojis to the AI prompt context.
-# If True, the bot will fetch available emojis and instruct the AI on how to use them.
-emojis_enabled: bool = variables.get("emojis_enabled", False)
-default_ai_model_index = variables.get("default_ai_model_index", 0)
-welcome_goodbye_model_index = variables.get("welcome_goodbye_model_index", 1)
-timeout_duration_minutes = variables.get("timeout_duration_minutes", 5)
-timeout_reason = variables.get("timeout_reason", "")
+# Define the AI provider (currently set to Google AI Studio)
+ai_provider = "ai_studio"
+# Global flag to enable/disable adding available emojis to the AI prompt context. If True, the bot will fetch available emojis and instruct the AI on how to use them.
+emojis_enabled = False
 
 # --- Event Handlers ---
 
 @client.event
 async def on_ready():
     """
-    Event handler called when the bot successfully connects to Discord
-    and is ready to operate. Synchronizes slash commands.
+    Event handler called when the bot successfully connects to Discord.
     """
-    logger.info(f'Logged in as {client.user} (ID: {client.user.id})')
-    logger.info('Synchronizing slash commands...')
+    print(f'Logged in as {client.user}')
     try:
-        # Synchronize slash commands with Discord.
-        # Syncing globally can take time; consider syncing per-guild for faster updates during development.
-        synced = await tree.sync()
-        # Simplified pluralization
-        plural = 's' if len(synced) != 1 else ''
-        logger.info(f"Synced {len(synced)} command{plural}.")
+        # Synchronize slash commands with Discord
+        synced = await client.tree.sync()
+        # Determine pluralization for the log message
+        if (len(synced) == 1): plural = ""
+        else: plural = 's'
+        print(f"Synced {len(synced)} command{plural}")
     except Exception as e:
-        logger.exception(f"Failed to sync commands: {e}") # Use logger.exception to include traceback
+        print(f"Failed to sync commands: {e}")
 
 # --- Slash Commands ---
 
-@tree.command(name="tags", description="Sends the Danbooru tag group wiki link and optionally tags a user.")
+@client.tree.command(name="tags", description="Sends the Danbooru tag group wiki link and optionally tags a user.")
 async def tags(interaction: discord.Interaction, user: discord.Member = None):
     """
     Slash command to send a link to the Danbooru tag group wiki.
     Optionally mentions a user in the message.
-
-    Args:
-        interaction: The interaction object representing the command invocation.
-        user: The optional user to mention in the response.
     """
     # Create the button linking to the wiki
-    button = discord.ui.Button(
-        label='Danbooru Tag Group Wiki',
-        url='https://danbooru.donmai.us/wiki_pages/tag_group',
-        style=discord.ButtonStyle.link # Explicitly set style for clarity
-    )
+    button = discord.ui.Button(label='Danbooru Tag Group Wiki', url='https://danbooru.donmai.us/wiki_pages/tag_group')
     view = discord.ui.View().add_item(button)
 
-    # Construct the response message
-    content = 'Here is the Danbooru tag group wiki.'
+    # Send the response, mentioning the user if provided
     if user:
-        content = f"{user.mention} {content}" # Prepend mention if user is provided
+        await interaction.response.send_message(f"{user.mention} Here is the Danbooru tag group wiki.", view=view)
+    else:
+        await interaction.response.send_message('Here is the Danbooru tag group wiki.', view=view)
 
-    # Send the response
-    await interaction.response.send_message(content, view=view)
-
-@tree.command(name="help", description="See more info about commands")
+@client.tree.command(name="help", description="See more info about commands")
 async def help_command(interaction: discord.Interaction):
     """
     Slash command to display help information about the bot's commands and features.
-
-    Args:
-        interaction: The interaction object representing the command invocation.
     """
     # Create an embed message to display the help information
-    embed = discord.Embed(
-        title="Command List & Bot Info",
-        description="Here are the available commands and features:",
-        color=discord.Color.green() # Use discord.Color constants
-    )
+    embed = discord.Embed(title="Command List", description="Here are the available commands:", color=0x00ff00)
     embed.add_field(name="/help", value="Displays this help message.", inline=False)
-    embed.add_field(name="/tags [user]", value="Sends the Danbooru tag group wiki link. Optionally mention a user.", inline=False)
-    embed.add_field(
-        name="AI Chat",
-        value=(
-            "Mention the bot or reply to one of its messages "
-            "to start a conversation. The bot uses the message history as context."
-        ),
-        inline=False
-    )
-    embed.add_field(
-        name="AI Welcome & Goodbye",
-        value="Generates messages automatically when a member joins or leaves the server.",
-        inline=False
-    )
-    # Send the embed as an ephemeral response (only visible to the user who invoked the command)
+    embed.add_field(name="/tags", value="Sends the Danbooru tag group wiki link and optionally tags a user.", inline=False)
+    embed.add_field(name="AI Features", value="To use the AI features, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the whole reply chain as context.", inline=False)
+    embed.add_field(name="AI-based join and leave messages", value="Activate automatically when a member joins or leaves.", inline=False)
+    # Send the embed as the response
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 # --- Member Event Handlers ---
 
 @client.event
-async def on_member_remove(member: discord.Member):
+async def on_member_remove(member):
     """
-    Event handler called when a member leaves or is kicked/banned from the server.
-    Sends an AI-generated goodbye message to the system channel if configured.
-
-    Args:
-        member: The member who left the server.
+    Event handler called when a member leaves the server.
+    Sends an AI-generated goodbye message to the system channel.
     """
     # Check if a system channel exists to send the message
     if member.guild.system_channel:
         # Prepare the prompt for the AI
-        prompt = (
-            f"Server Name: {member.guild.name}\n"
-            f"User that left ID: {member.id}\n"
-            f"User that left name: {member.display_name}"
-        )
-        logger.info(f"Member Left: {member.display_name} ({member.id}) from {member.guild.name}. Generating goodbye message.")
-        logger.debug(f"Goodbye Prompt Context:\n{prompt}") # Log prompt at debug level
-
-        try:
-            # Combine system prompts and emoji instructions (if enabled)
-            system_prompt_combined = prompts["system_prompt"] + prompts["goodbye_system_prompt"] + await emoji_prompt(member.guild) # Pass guild for context
-            # Generate the goodbye message using the AI
-            output = await aistudio_request(prompt, system_prompt_combined, welcome_goodbye_model_index)
-            # Send the generated message
-            await member.guild.system_channel.send(output)
-            logger.info(f"Sent AI goodbye message for {member.display_name}.")
-        except KeyError as e:
-            logger.error(f"Missing prompt key in prompts.json: {e}")
-        except Exception as e:
-            logger.exception(f"Failed to generate or send goodbye message for {member.display_name}: {e}")
+        prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
+        print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}") # Log the event
+        # Generate the goodbye message using the AI
+        if(ai_provider == "ai_studio"):
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"] + await emoji_prompt(), 1) # Use model index 1 for goodbye
+        # Send the generated message
+        await member.guild.system_channel.send(output)
 
 
 # --- Message Event Handlers ---
 
-# Precompile regex for efficiency if used often
-TIMEOUT_REGEX = re.compile(r"!Timeout <@([0-9]+)>")
-USER_ID_REGEX = re.compile(r"[0-9]+")
-
 @client.event
-async def on_message(message: discord.Message):
+async def on_message(message):
     """
     Event handler called when a message is sent in a channel the bot can see.
-    Handles:
-    1. Ignoring messages from the bot itself.
-    2. A hidden command for timing out users (triggered by the bot's own message).
-    3. AI interactions when the bot is mentioned or replied to.
-    4. AI-generated welcome messages for new members joining.
-
-    Args:
-        message: The message object that was sent.
+    Handles AI interactions (mentions/replies) and new member welcome messages.
     """
-    # 1. Ignore messages sent by the bot itself
+    # Ignore messages sent by the bot itself
     if message.author == client.user:
-        # 2. Hidden Timeout Feature (Triggered by bot's own specific message format)
-        # Note: This is an unusual pattern. Consider a dedicated command or interaction.
-        timeout_match = TIMEOUT_REGEX.search(message.content)
-        if timeout_match:
-            try:
-                user_id_str = timeout_match.group(1) # Get user ID from the first capture group
-                user_id = int(user_id_str)
-                member = message.guild.get_member(user_id)
-                if member:
-                    await member.timeout(timedelta(minutes=timeout_duration_minutes), reason=timeout_reason)
-                    logger.info(f"Timed out {member.display_name} ({user_id}) for {timeout_duration_minutes} minutes.")
-                else:
-                    logger.warning(f"Could not find member with ID {user_id} to time out in guild {message.guild.name}.")
-            except (ValueError, IndexError):
-                logger.error(f"Failed to parse user ID from timeout command: {message.content}")
-            except discord.Forbidden:
-                logger.error(f"Missing permissions to time out member {user_id} in {message.guild.name}.")
-            except discord.HTTPException as e:
-                logger.error(f"Failed to time out member {user_id} due to API error: {e}")
-        return # Stop processing after handling bot's own message
+        if(re.search(r"!Timeout <@[0-9]+>", message.content)):
+            member = message.guild.get_member(int(re.search(r"[0-9]+", re.search(r"!Timeout <@[0-9]+>", message.content).group(0)).group(0)))
+            await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
+        return
 
     # --- AI Interaction Handling ---
-    # 3. Check if the bot was mentioned or replied to
-    is_mention = client.user in message.mentions  or client.user.display_name in message.content
-    is_reply_to_bot = message.reference and message.reference.resolved and message.reference.resolved.author == client.user
-
-    if is_mention or is_reply_to_bot:
-        async with message.channel.typing(): # Show typing indicator
-            try:
-                # Format the initial prompt with sender info and message content
-                latest_message_prompt = (
-                    f"Sender ID: {message.author.id}\n"
-                    f"Sender Name: {message.author.display_name}\n"
-                    f"Message: {message.content}"
-                )
-                # Fetch the reply chain to build context
-                full_prompt = await get_replies(message, latest_message_prompt)
-                logger.info(f"Received AI query from {message.author.display_name} ({message.author.id}). Generating response.")
-                logger.debug(f"AI Prompt Context:\n{full_prompt}") # Log full prompt at debug level
-
-                # Combine system prompt and emoji instructions (if enabled)
-                system_prompt_combined = prompts["system_prompt"] + await emoji_prompt(message.guild) # Pass guild for context
-
-                # Generate AI response
-                output = await aistudio_request(full_prompt, system_prompt_combined, default_ai_model_index)
-
-                # Reply to the original message with the AI's output
-                await message.reply(output)
-                logger.info(f"Sent AI reply to {message.author.display_name}.")
-
-            except KeyError as e:
-                logger.error(f"Missing prompt key in prompts.json: {e}")
-                await message.reply("Sorry, I encountered a configuration error and couldn't process that.")
-            except Exception as e:
-                logger.exception(f"Error during AI interaction processing: {e}")
-                await message.reply("Sorry, something went wrong while generating a response.")
-        return # Don't process as a new member message if it was an AI interaction
+    # Check if the bot was mentioned or its display name is in the message content
+    if client.user in message.mentions or (client.user.display_name and client.user.display_name in message.content):
+        # Show typing indicator while processing
+        async with message.channel.typing():
+            # Format the initial prompt with sender info and message content
+            prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
+            # Fetch the reply chain to build context
+            prompt = await get_replies(message, prompt)
+            print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}") # Log the full prompt
+            # Generate AI response based on the provider
+            if(ai_provider == "ai_studio"):
+                # Generate the AI response, including emoji instructions if enabled
+                output = await aistudio_request(prompt, prompts["system_prompt"] + await emoji_prompt(), True)
+        # Reply to the original message with the AI's output
+        await message.reply(output)
 
     # --- New Member Welcome Message ---
-    # 4. Check if the message type indicates a new member joined (system message)
+    # Check if the message type indicates a new member joined (system message)
     if message.type == discord.MessageType.new_member:
-        # Ensure the author is the user who joined (for standard welcome messages)
-        if message.author == message.author: # This check seems redundant, maybe meant message.author == member who joined?
-                                             # The message.author *is* the member who joined for this message type.
-            async with message.channel.typing():
-                try:
-                    # Prepare the prompt for the welcome message AI
-                    prompt = (
-                        f"New User ID: {message.author.id}\n"
-                        f"New User Name: {message.author.display_name}"
-                    )
-                    logger.info(f"New member joined: {message.author.display_name} ({message.author.id}). Generating welcome message.")
-                    logger.debug(f"Welcome Prompt Context:\n{prompt}") # Log prompt at debug level
-
-                    # Combine system prompts and emoji instructions (if enabled)
-                    system_prompt_combined = prompts["system_prompt"] + prompts["welcome_system_prompt"] + await emoji_prompt(message.guild) # Pass guild for context
-                    # Generate the welcome message using the AI
-                    output = await aistudio_request(prompt, system_prompt_combined, welcome_goodbye_model_index)
-
-                    # Reply to the system's welcome message with the AI's generated message
-                    await message.reply(output)
-                    logger.info(f"Sent AI welcome message for {message.author.display_name}.")
-                except KeyError as e:
-                    logger.error(f"Missing prompt key in prompts.json: {e}")
-                except Exception as e:
-                    logger.exception(f"Failed to generate or send welcome message for {message.author.display_name}: {e}")
-        return # Handled as new member message
+        # Show typing indicator
+        async with message.channel.typing():
+            # Prepare the prompt for the welcome message AI
+            prompt = f"New User ID: {message.author.id}\nNew User Name: {message.author.display_name}"
+            print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}") # Log the event
+            # Generate the welcome message using the AI
+            if(ai_provider == "ai_studio"):
+                # Use model index 1 for welcome message
+                # Generate the AI response, including emoji instructions if enabled
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"] + await emoji_prompt(), 1)
+        # Reply to the welcome message (which is usually a system message)
+        await message.reply(output)
 
 # --- Helper Functions ---
 
-async def aistudio_request(prompt: str, system_prompt: str, model_index: int = 0) -> str:
+async def aistudio_request(prompt, system_prompt, modelIndex = 0):
     """
     Sends a request to the Google AI Studio API (GenAI) to generate content.
-    Includes error handling and fallback to the next model if available.
+    Includes basic error handling and fallback to the next model if available.
 
     Args:
-        prompt: The user prompt and conversation context.
-        system_prompt: The system instruction for the AI model.
-        model_index: The index of the AI model to use from variables.json.
+        prompt (str): The user prompt and context.
+        system_prompt (str): The system instruction for the AI model.
+        modelIndex (int, optional): The index of the AI model to use from variables.json. Defaults to 0.
 
     Returns:
-        The generated text response from the AI, or a user-friendly error message.
+        str: The generated text response from the AI, or an error message.
     """
-    available_models = variables.get("models", {}).get("ai_studio", [])
-    if not available_models:
-        logger.error("No AI Studio models defined in variables.json under models.ai_studio")
-        return "Sorry, the AI models are not configured correctly."
-
-    if model_index >= len(available_models):
-        logger.error(f"Initial model index {model_index} is out of bounds (only {len(available_models)} models defined).")
-        return "Sorry, I encountered an issue selecting an AI model."
-
-    current_model_name = available_models[model_index]
-    logger.debug(f"Attempting AI request with model: {current_model_name} (Index: {model_index})")
-
     try:
         # Attempt to generate content using the specified model
         response = genai_client.models.generate_content(
-            model=current_model_name,
-            config=genai_types.GenerateContentConfig(
-                system_instruction=system_prompt
+            model=variables["models"]["ai_studio"][modelIndex], # Select model by index
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt # Provide system instructions
             ),
-            contents=prompt
+            contents = prompt # Provide the main prompt/context
         )
-        # Basic cleanup: remove potential leading metadata lines added by the prompt structure.
-        # This regex is safer than the previous one, only removing lines that *start* with "Sender ID:", "Sender Name:", or "Message: ".
-        # It might still remove legitimate starting lines if the AI generates them, but it's less aggressive.
-        output = re.sub(r"^(Sender ID:|Sender Name:|Message:).*\n?", "", response.text, flags=re.MULTILINE).strip()
-        # Check if the response is empty after potential cleanup or if the API returned empty
-        if not output:
-            logger.warning(f"AI model {current_model_name} returned an empty response.")
-            # Consider falling back or returning a specific message
-            raise ValueError("AI returned empty response") # Trigger fallback logic
-        return output
-
-    except IndexError: # Should not happen with the initial check, but good for safety.
-        logger.error(f"Model index {model_index} became invalid unexpectedly.")
-        return "Sorry, I encountered an internal error selecting an AI model."
+        output = response.text
+    except IndexError:
+        # Handle case where modelIndex is out of bounds (no more models to try)
+        print(f"\n------------------------- AI ERROR -------------------------\nError: No more models available to try after index {modelIndex}.")
+        output = "Sorry, I encountered an issue processing your request with all available AI models."
     except Exception as e:
-        logger.warning(f"Error with AI model {current_model_name} (Index {model_index}): {e}")
-        # Try the next model index if available
-        next_model_index = model_index + 1
-        if next_model_index < len(available_models):
-            logger.info(f"Trying next AI model index: {next_model_index}")
-            # Recursive call to try the next model
-            return await aistudio_request(prompt, system_prompt, next_model_index)
-        else:
-            # No more models left to try
-            logger.error(f"No more AI models available to try after index {model_index}.")
-            return "Sorry, I encountered an issue processing your request with all available AI models."
+        # Handle other potential API errors
+        print(f"\n------------------------- AI ERROR -------------------------\nError with model index {modelIndex}: {e}")
+        # Recursively try the next model index if available
+        try:
+            print(f"Trying next model index: {modelIndex + 1}")
+            output = await aistudio_request(prompt, system_prompt, modelIndex + 1) # Pass system_prompt in recursive call
+        except IndexError: # Catch index error from the recursive call immediately
+            print(f"\n------------------------- AI ERROR -------------------------\nError: No more models available to try after index {modelIndex}.")
+            output = "Sorry, I encountered an issue processing your request with all available AI models."
+        except Exception as final_e: # Catch any other error during retry
+            print(f"\n------------------------- AI ERROR -------------------------\nError during retry: {final_e}")
+            output = "Sorry, I encountered an unexpected error while processing your request."
+
+    # Clean up potential metadata leakage from the AI response (optional, but good practice)
+    # This regex removes lines like "Sender ID: 12345..." from the start of the output
+    output = re.sub(r"(.|\n)*Message: ", "", output)
+    return output
 
 
-async def get_replies(message: discord.Message, current_prompt_str: str) -> str:
+async def get_replies(message, string):
     """
-    Traverses the reply chain of a message upwards to build a conversation history string,
-    starting from the oldest message in the chain.
+    Traverses the reply chain of a message to build a conversation history string.
 
     Args:
-        message: The starting message object (the most recent one).
-        current_prompt_str: The formatted string for the most recent message.
+        message (discord.Message): The starting message object.
+        string (str): The initial string (usually the latest message).
 
     Returns:
-        A string containing the conversation history, formatted for the AI,
-        ordered from oldest to newest message.
+        str: A string containing the conversation history, formatted for the AI.
     """
-    history = [current_prompt_str] # Start with the latest message
-    caching_log = "" # Log to track how messages were fetched
-
-    current_message = message # Start traversal from the initial message
-
-    # Loop while the current message is a reply and we can resolve the reference
-    while current_message.reference and current_message.reference.message_id:
-        ref = current_message.reference
-        referenced_message = None
-
-        # 1. Check cache first
-        if ref.cached_message:
-            referenced_message = ref.cached_message
-            caching_log += "C" # Log cache hit
-        # 2. Check resolved (partially fetched) message
-        elif isinstance(ref.resolved, discord.Message):
-            referenced_message = ref.resolved
-            caching_log += "R" # Log resolved hit
-        # 3. Fetch from API as a last resort
+    cachingLog = "" # Log to track how messages were fetched (cache, resolved, fetch)
+    # Loop while the current message is a reply and the referenced message exists
+    while(message.reference and not isinstance(message.reference.resolved, discord.DeletedReferencedMessage)):
+        # Prioritize cached message for efficiency
+        if(message.reference.cached_message):
+            message = message.reference.cached_message
+            cachingLog += "C" # Log cache hit
         else:
-            try:
-                # Ensure channel is fetchable
-                if isinstance(message.channel, (discord.TextChannel, discord.Thread)):
-                    referenced_message = await message.channel.fetch_message(ref.message_id)
-                    caching_log += "F" # Log API fetch
-                else:
-                    logger.warning(f"Cannot fetch message {ref.message_id} from channel type {type(message.channel)}. Stopping reply chain.")
+            # Use resolved message if available (already fetched partially)
+            if(message.reference.resolved):
+                message = message.reference.resolved
+                cachingLog += "R" # Log resolved hit
+            # Otherwise, fetch the full message from Discord API
+            else:
+                try:
+                    message = await message.channel.fetch_message(message.reference.message_id)
+                    cachingLog += "X" # Log API fetch
+                except discord.NotFound:
+                    # Stop if the referenced message couldn't be found
+                    print(f"Warning: Could not fetch referenced message {message.reference.message_id}. Stopping reply chain traversal.")
                     break
-            except discord.NotFound:
-                logger.warning(f"Could not fetch referenced message {ref.message_id} (Not Found). Stopping reply chain.")
-                break
-            except discord.Forbidden:
-                logger.warning(f"Could not fetch referenced message {ref.message_id} (Forbidden). Stopping reply chain.")
-                break
-            except discord.HTTPException as e:
-                logger.warning(f"Discord API error fetching message {ref.message_id}: {e}. Stopping reply chain.")
-                break
+                except discord.HTTPException as e:
+                    # Stop on other Discord API errors
+                    print(f"Warning: Discord API error fetching message {message.reference.message_id}: {e}. Stopping reply chain traversal.")
+                    break
 
-        # If we successfully got the referenced message
-        if referenced_message:
-            # Format the message details and add to the *beginning* of the history list
-            history.insert(0, (
-                f"Sender ID: {referenced_message.author.id}\n"
-                f"Sender Name: {referenced_message.author.display_name}\n"
-                f"Message: {referenced_message.content}"
-            ))
-            # Move up the chain
-            current_message = referenced_message
-        else:
-            # Stop if we couldn't get the message for any reason
-            break
+        # Prepend the fetched message details to the context string
+        string = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}\n{string}"
 
-    # Log the caching strategy used for debugging if any fetching occurred
-    if caching_log:
-        logger.debug(f"Reply Caching Log (C=Cache, R=Resolved, F=Fetch): {caching_log}")
+    # Log the caching strategy used for debugging
+    if(cachingLog != ""):
+        print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
+    return string
 
-    # Join the history list into a single string, ordered oldest to newest
-    return "\n".join(history)
-
-
-async def emoji_prompt(guild: discord.Guild | None) -> str:
+async def emoji_prompt():
     """
-    Fetches available custom emojis (guild-specific and application-owned)
-    and formats them into a string with instructions for the AI.
-
-    Args:
-        guild: The guild context to fetch emojis from. Can be None if context is unavailable.
+    Fetches available client and application emojis and formats them into a string
+    with instructions for the AI on how to use them in its responses.
 
     Returns:
-        A formatted string containing available emojis and usage instructions,
-        or an empty string if emojis_enabled is False or no emojis are found.
+        str: A formatted string containing available emojis and usage instructions,
+            or an empty string if emojis_enabled is False.
     """
-    if not emojis_enabled:
-        return "" # Return early if the feature is disabled
+    # Only proceed if emoji usage is enabled globally
+    if(emojis_enabled):
+        # Fetch emojis specific to this application (e.g., bot-owned emojis)
+        application_emojis = await client.fetch_application_emojis() # Load emojis
+        # Initialize lists to store formatted emoji strings
+        static_emojis = []
+        animated_emojis = []
 
-    static_emojis = []
-    animated_emojis = []
+        # Iterate through emojis the bot has access to in guilds it's in
+        for emoji in client.emojis:
+            # Sort emojis into static and animated lists with Discord formatting
+            if emoji.animated:
+                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
+            else:
+                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
 
-    # 1. Guild Emojis (if in a guild context)
-    if guild:
-        for emoji in guild.emojis:
-            if emoji.available: # Only include usable emojis
-                if emoji.animated:
-                    animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
-                else:
-                    static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
-
-    # 2. Application (Bot-owned) Emojis - These might be usable across guilds
-    # Note: fetch_application_emojis requires special permissions/setup for bot-owned emojis.
-    # If you don't have specific bot-owned emojis, this might return an empty list or error.
-    try:
-        application_emojis = await client.fetch_application_emojis()
+        # Iterate through the application-specific emojis
         for emoji in application_emojis:
-            if emoji.available:
-                formatted_emoji = f"<{'a' if emoji.animated else ''}:{emoji.name}:{emoji.id}>"
-                # Avoid duplicates if an app emoji is also somehow in guild.emojis
-                if emoji.animated and formatted_emoji not in animated_emojis:
-                    animated_emojis.append(formatted_emoji)
-                elif not emoji.animated and formatted_emoji not in static_emojis:
-                    static_emojis.append(formatted_emoji)
-    except discord.HTTPException as e:
-        logger.warning(f"Could not fetch application emojis: {e}") # Log if fetching app emojis fails
-    except AttributeError:
-        logger.warning("client.fetch_application_emojis() not available or failed.")
-
-
-    # Only add the emoji section to the prompt if emojis were actually found
-    if static_emojis or animated_emojis:
-        emoji_list_str = ""
-        if static_emojis:
-            emoji_list_str += f"Static emojis: {', '.join(static_emojis)}\n"
-        if animated_emojis:
-            emoji_list_str += f"Animated emojis: {', '.join(animated_emojis)}\n"
+            # Sort emojis into static and animated lists with Discord formatting
+            if emoji.animated:
+                animated_emojis.append(f"<a:{emoji.name}:{emoji.id}>")
+            else:
+                static_emojis.append(f"<:{emoji.name}:{emoji.id}>")
 
         # Construct the final prompt string with emoji lists and instructions
-        # Ensure 'emoji_prompt' exists in your prompts.json
-        emoji_instructions = prompts.get("emoji_prompt", "Use the provided emojis in your response where appropriate by including their full code (e.g., <:name:id> or <a:name:id>).")
-        return f"\n## Available Emojis:\n{emoji_list_str}{emoji_instructions}"
+        # This tells the AI which emojis are available and how to format them correctly.
+        return f"## Available emojis:\nStatic emojis: {", ".join(static_emojis)}\nAnimated emojis: {", ".join(animated_emojis)}\n{prompts['emoji_prompt']}"
     else:
-        logger.debug("No available custom emojis found for emoji prompt.")
-        return "" # Return empty string if no emojis are available
-
+        # Return an empty string if emojis are disabled, so nothing is added to the AI prompt
+        return ""
 
 # --- Bot Execution ---
-if __name__ == "__main__":
-    try:
-        client_token = keys["client_key"]
-        if not client_token:
-            raise ValueError("Client token is empty.")
-        logger.info("Starting bot...")
-        client.run(client_token, log_handler=None) # Use internal discord.py logging configured above
-    except KeyError:
-        logger.error("Discord client token 'client_key' not found in keys.json.")
-    except ValueError as e:
-        logger.error(f"Invalid Discord client token: {e}")
-    except discord.LoginFailure:
-        logger.error("Failed to log in to Discord. Check the client token.")
-    except Exception as e:
-        logger.exception(f"An unexpected error occurred during bot execution: {e}")
-
+# Run the bot using the client token from keys.json
+client.run(keys["client_key"])
