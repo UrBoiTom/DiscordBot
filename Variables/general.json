@@ -8,8 +8,10 @@
         ]
     },
     "emojis_enabled": false,
+    "ai_provider":"ai_studio",
     "default_ai_model_index": 0,
     "welcome_goodbye_model_index": 1,
     "timeout_duration_minutes": 5,
-    "timeout_reason": ""
+    "timeout_reason": "",
+    "owner_id": 719513697730691113
 }
