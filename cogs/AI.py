@@ -32,8 +32,9 @@ class AI(commands.Cog):
     async def on_message(self, message):
         if message.author == self.bot.user:
             if(re.search(r"!Timeout <@[0-9]+>", message.content)):
-                member = message.guild.get_member(int(re.search(r"[0-9]+", re.search(r"!Timeout <@[0-9]+>", message.content).group(0)).group(0)))
-                await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
+                for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
+                    member = message.guild.get_member(int(re.search(r"[0-9]+", str.group(0)).group(0)))
+                    await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
             return
 
         if self.bot.user in message.mentions or self.bot.user.display_name in message.content:

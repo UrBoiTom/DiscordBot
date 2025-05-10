@@ -46,26 +46,27 @@ async def on_ready():
 @client.tree.command(name="reload", description="Reloads bot cogs. Can only be used by the bot's owner.")
 async def reload(interaction: discord.Interaction):
     if(interaction.user.id == variables["owner_id"]):
+        str = ""
         try:
             for cog in os.listdir('cogs'):
                 if cog.endswith('.py'):
                     try:
                         await client.load_extension(f'cogs.{cog[:-3]}')
-                        print (f"Loaded {cog}")
+                        str += f"\nLoaded {cog}"
                     except commands.ExtensionAlreadyLoaded:
                         await client.reload_extension(f'cogs.{cog[:-3]}')
-                        print (f"Loaded {cog}")
+                        str+= f"\nReloaded {cog}"
                     except Exception as e:
-                        print(f'Failed to load extension {cog}: {e}')
-            await interaction.response.send_message("Cogs reloaded", ephemeral=True)
+                        str += f'Failed to load extension {cog}: {e}\n'
+            await interaction.response.send_message(f"Cogs reloaded:{str}", ephemeral=True)
         except:
-            await interaction.response.send_message("Cogs failed to reload", ephemeral=True)
+            await interaction.response.send_message(f"Cogs failed to reload:{str}", ephemeral=True)
     else:
         await interaction.response.send_message("Only the bot's owner can use this command.", ephemeral=True)
 
 @client.tree.command(name="tags", description="Sends the Danbooru tag group wiki link and optionally tags a user.")
 async def tags(interaction: discord.Interaction, user: discord.Member = None):
-    button = discord.ui.Button(label='Danbooru Tag Group Wiki', url='https://danbooru.donmai.us/wiki_pages/tag_group')
+    button = discord.ui.Button(label='Danbooru Tag Group Wiki', url='https://danbooru.donmai.us/wiki_pages/tag_groups')
     view = discord.ui.View().add_item(button)
 
     if user:
