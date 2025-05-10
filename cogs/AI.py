@@ -33,7 +33,7 @@ class AI(commands.Cog):
         if message.author == self.bot.user:
             if(re.search(r"!Timeout <@[0-9]+>", message.content)):
                 for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
-                    member = message.guild.get_member(int(re.search(r"[0-9]+", str.group(0)).group(0)))
+                    member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
                     await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
             return
 
