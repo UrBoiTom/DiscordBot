@@ -1,6 +1,7 @@
 {
     "models":{
         "ai_studio":[
+            "gemini-2.5-pro-preview-05-06",
             "gemini-2.5-pro-exp-03-25",
             "gemini-2.5-flash-preview-04-17",
             "gemini-2.0-flash-exp",
@@ -10,7 +11,7 @@
     "emojis_enabled": false,
     "ai_provider":"ai_studio",
     "default_ai_model_index": 0,
-    "welcome_goodbye_model_index": 1,
+    "welcome_goodbye_model_index": 2,
     "timeout_duration_minutes": 5,
     "timeout_reason": "",
     "owner_id": 719513697730691113
