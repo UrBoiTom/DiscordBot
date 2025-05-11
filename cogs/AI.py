@@ -2,24 +2,12 @@ import discord
 from discord import app_commands
 import discord
 from discord.ext import commands
-import json
 from google import genai
 from google.genai import types # type: ignore
 import re
 from datetime import timedelta
 import asyncio
-
-def load_json(filename):
-    filepath = f'variables/{filename}.json'
-    try:
-        with open(filepath) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: Configuration file '{filepath}' not found.")
-        raise
-    except json.JSONDecodeError as e:
-        print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
-        raise
+from scripts.functions import load_json
 
 keys = load_json('keys')
 prompts = load_json('prompts')

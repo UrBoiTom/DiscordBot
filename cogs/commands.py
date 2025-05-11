@@ -1,20 +1,8 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-import json
 import os
-
-def load_json(filename):
-    filepath = f'variables/{filename}.json'
-    try:
-        with open(filepath) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: Configuration file '{filepath}' not found.")
-        raise
-    except json.JSONDecodeError as e:
-        print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
-        raise # Re-raise the exception
+from scripts.functions import load_json
 
 variables = load_json('general')
 
@@ -41,7 +29,7 @@ class Commands(commands.Cog):
                                 await self.client.reload_extension(f'cogs.{cog[:-3]}')
                                 string+= f"\nReloaded {cog}"
                             except Exception as e:
-                                string += f'Failed to load extension {cog}: {e}\n'
+                                string += f'\nFailed to load extension {cog}: {e}\n'
                     
                     await interaction.response.send_message(f"Cogs reloaded:{string}", ephemeral=True)
                 except:
