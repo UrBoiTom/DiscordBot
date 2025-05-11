@@ -23,7 +23,9 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-client = commands.Bot(command_prefix='/', intents=intents)
+contexts = discord.app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True)
+
+client = commands.Bot(command_prefix='/', intents=intents, allowed_contexts=contexts)
 
 @client.event
 async def on_ready():
