@@ -28,7 +28,9 @@ async def on_ready():
     
     try:
         synced = await client.tree.sync()
-        print(f"Synced {len(synced)} command{is_plural(synced)}")
+        if (len(synced) == 1): plural = ""
+        else: plural = 's'
+        print(f"Synced {len(synced)} command{plural}")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 

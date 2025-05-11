@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
-from scripts.functions import load_json, is_plural
+from scripts.functions import load_json
 
 variables = load_json('general')
 
@@ -32,12 +32,14 @@ class Commands(commands.Cog):
                                 string += f'\nFailed to load extension {cog}: {e}\n'
                     
                     await interaction.response.send_message(f"Cogs reloaded:{string}", ephemeral=True)
-                except:
-                    await interaction.response.send_message(f"Cogs failed to reload:{string}", ephemeral=True)
+                except Exception as e:
+                    await interaction.response.send_message(f"Cogs failed to reload:{e}", ephemeral=True)
             elif (part.value == "commands"):
                 try:
                     synced = await self.client.tree.sync()
-                    await interaction.response.send_message(f"Synced {len(synced)} command{is_plural(synced)}", ephemeral=True)
+                    if (len(synced) == 1): plural = ""
+                    else: plural = 's'
+                    await interaction.response.send_message(f"Synced {len(synced)} command{plural}", ephemeral=True)
                 except Exception as e:
                     await interaction.response.send_message(f"Failed to sync commands: {e}", ephemeral=True)
             else:

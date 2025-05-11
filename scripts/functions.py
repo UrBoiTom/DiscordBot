@@ -12,7 +12,3 @@ def load_json(filename):
     except json.JSONDecodeError as e:
         print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
         raise # Re-raise the exception
-
-def is_plural(value):
-    if (len(value) == 1): return ""
-    else: return "s"
