@@ -1,4 +1,6 @@
 import discord
+from discord import app_commands
+import discord
 from discord.ext import commands
 import json
 from google import genai
@@ -29,6 +31,17 @@ class AI(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    
+    @app_commands.command(name="message", description="Activates the AI features through a command.")
+    async def message(self, interaction: discord.Interaction, msg: str):
+        await interaction.response.defer(thinking=True)
+        prompt = f"Sender ID: {interaction.user.id}\nSender Name: {interaction.user.display_name}\nMessage: {msg}"
+        print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
+        if(variables["ai_provider"] == "ai_studio"):
+            output = await aistudio_request(prompt, prompts["system_prompt"])
+        print("ready")
+        await interaction.edit_original_response(content=output)
+
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.client.user:
@@ -44,7 +57,7 @@ class AI(commands.Cog):
                 prompt = await get_replies(message, prompt)
                 print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
                 if(variables["ai_provider"] == "ai_studio"):
-                    output = await aistudio_request(prompt, prompts["system_prompt"], True)
+                    output = await aistudio_request(prompt, prompts["system_prompt"])
                 await message.reply(output)
 
         if message.type == discord.MessageType.new_member:
