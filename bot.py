@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import os
-from scripts.functions import load_json, is_plural
+from scripts.functions import load_json
 
 keys = load_json('keys')
 variables = load_json('general')
