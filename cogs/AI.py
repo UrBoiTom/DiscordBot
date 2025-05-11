@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types # type: ignore
 import re
 from datetime import timedelta
+import asyncio
 
 def load_json(filename):
     filepath = f'variables/{filename}.json'
@@ -44,7 +45,7 @@ class AI(commands.Cog):
                 print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
                 if(variables["ai_provider"] == "ai_studio"):
                     output = await aistudio_request(prompt, prompts["system_prompt"], True)
-            await message.reply(output)
+                await message.reply(output)
 
         if message.type == discord.MessageType.new_member:
             async with message.channel.typing():
@@ -52,7 +53,7 @@ class AI(commands.Cog):
                 print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}")
                 if(variables["ai_provider"] == "ai_studio"):
                     output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], 1)
-            await message.reply(output)
+                await message.reply(output)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -60,18 +61,21 @@ class AI(commands.Cog):
             prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
             print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}")
             if(variables["ai_provider"] == "ai_studio"):
-                    output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], 1)
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], 1)
             await member.guild.system_channel.send(output)
 
 async def aistudio_request(prompt, system_prompt, modelIndex = 0):
     try:
-        response = genai_client.models.generate_content(
-            model=variables["models"]["ai_studio"][modelIndex],
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt
+        response = await asyncio.wait_for(
+            asyncio.to_thread(genai_client.models.generate_content,
+                model=variables["models"]["ai_studio"][modelIndex],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt
+                ),
+                contents = prompt
             ),
-            contents = prompt
-        )
+            timeout=180
+            )
         output = response.text
     except IndexError:
         print(f"\n------------------------- AI ERROR -------------------------\nError: No more models available to try after index {modelIndex}.")
