@@ -42,12 +42,13 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
 
 3.  **Configure Prompts (`variables/prompts.json`):**
     Rename `prompts.EXAMPLE.json` to `prompts.json` inside the `variables` directory. This defines the instructions given to the AI. Adjust the prompts to shape the bot's personality and responses.
+    - An example system prompt is provided, either replace all of the text between backticks ` with the appropriate value or write your own.
 
-4.  **Configure General Settings (`variables/general.json`):**
+5.  **Configure General Settings (`variables/general.json`):**
     General variables are controlled by a file named `general.json` inside the `variables` directory.
     *   Make sure the model names listed in `"ai_studio"` are valid models accessible via your API key. Check the Google AI documentation for available models.
 
-5.  **Install and start the bot:**
+6.  **Install and start the bot:**
 
     Run
     ```bash
