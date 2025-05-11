@@ -47,6 +47,7 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
 5.  **Configure General Settings (`variables/general.json`):**
     General variables are controlled by a file named `general.json` inside the `variables` directory.
     *   Make sure the model names listed in `"ai_studio"` are valid models accessible via your API key. Check the Google AI documentation for available models.
+    *   Make sure to change `"owner_id"` to **YOUR** discord ID.
 
 6.  **Install and start the bot:**
 
