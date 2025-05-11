@@ -26,19 +26,19 @@ variables = load_json('general')
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
 class AI(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.client = client
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == self.bot.user:
+        if message.author == self.client.user:
             if(re.search(r"!Timeout <@[0-9]+>", message.content)):
                 for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
                     member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
                     await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
             return
 
-        if self.bot.user in message.mentions or self.bot.user.display_name in message.content:
+        if self.client.user in message.mentions or self.client.user.display_name in message.content:
             async with message.channel.typing():
                 prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
                 prompt = await get_replies(message, prompt)
@@ -122,5 +122,5 @@ async def get_replies(message, string):
         print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
     return string
 
-async def setup(bot):
-    await bot.add_cog(AI(bot))
+async def setup(client):
+    await client.add_cog(AI(client))
