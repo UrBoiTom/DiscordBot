@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
 import os
-from discord import app_commands
-from scripts.functions import load_json
+from scripts.functions import load_json, is_plural
 
 keys = load_json('keys')
 variables = load_json('general')
@@ -29,9 +28,7 @@ async def on_ready():
     
     try:
         synced = await client.tree.sync()
-        if (len(synced) == 1): plural = ""
-        else: plural = 's'
-        print(f"Synced {len(synced)} command{plural}")
+        print(f"Synced {len(synced)} command{is_plural(synced)}")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 

@@ -1,6 +1,5 @@
 import discord
 from discord import app_commands
-import discord
 from discord.ext import commands
 from google import genai
 from google.genai import types # type: ignore
