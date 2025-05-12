@@ -52,7 +52,7 @@ class AI(commands.Cog):
                 prompt = f"New User ID: {message.author.id}\nNew User Name: {message.author.display_name}"
                 print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}")
                 if(variables["ai_provider"] == "ai_studio"):
-                    output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], 1)
+                    output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], variables["welcome_goodbye_model_index"])
                 await message.reply(output)
 
     @commands.Cog.listener()
@@ -61,7 +61,7 @@ class AI(commands.Cog):
             prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
             print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}")
             if(variables["ai_provider"] == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], 1)
+                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], variables["welcome_goodbye_model_index"])
             await member.guild.system_channel.send(output)
 
 async def aistudio_request(prompt, system_prompt, modelIndex = 0):
