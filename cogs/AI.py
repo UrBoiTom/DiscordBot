@@ -11,6 +11,7 @@ from scripts.functions import load_json
 keys = load_json('keys')
 prompts = load_json('prompts')
 variables = load_json('general')
+modules = load_json('modules')
 
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
@@ -32,37 +33,41 @@ class AI(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author == self.client.user:
-            if(re.search(r"!Timeout <@[0-9]+>", message.content)):
-                for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
-                    member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
-                    await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
+            if(modules["Timeout"]):
+                if(re.search(r"!Timeout <@[0-9]+>", message.content)):
+                    for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
+                        member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
+                        await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
             return
 
-        if self.client.user in message.mentions or self.client.user.display_name in message.content:
-            async with message.channel.typing():
-                prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
-                prompt = await get_replies(message, prompt)
-                print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
-                if(variables["ai_provider"] == "ai_studio"):
-                    output = await aistudio_request(prompt, prompts["system_prompt"])
-                await message.reply(output)
+        if(modules["Main"]):
+            if self.client.user in message.mentions or self.client.user.display_name in message.content:
+                async with message.channel.typing():
+                    prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
+                    prompt = await get_replies(message, prompt)
+                    print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
+                    if(variables["ai_provider"] == "ai_studio"):
+                        output = await aistudio_request(prompt, prompts["system_prompt"])
+                    await message.reply(output)
 
-        if message.type == discord.MessageType.new_member:
-            async with message.channel.typing():
-                prompt = f"New User ID: {message.author.id}\nNew User Name: {message.author.display_name}"
-                print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}")
-                if(variables["ai_provider"] == "ai_studio"):
-                    output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], variables["welcome_goodbye_model_index"])
-                await message.reply(output)
+        if(modules["Welcome"]):
+            if message.type == discord.MessageType.new_member:
+                async with message.channel.typing():
+                    prompt = f"New User ID: {message.author.id}\nNew User Name: {message.author.display_name}"
+                    print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}")
+                    if(variables["ai_provider"] == "ai_studio"):
+                        output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["welcome_system_prompt"], variables["welcome_goodbye_model_index"])
+                    await message.reply(output)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        if member.guild.system_channel:
-            prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
-            print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}")
-            if(variables["ai_provider"] == "ai_studio"):
-                output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], variables["welcome_goodbye_model_index"])
-            await member.guild.system_channel.send(output)
+        if(modules["Goodbye"]):
+            if member.guild.system_channel:
+                prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
+                print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}")
+                if(variables["ai_provider"] == "ai_studio"):
+                    output = await aistudio_request(prompt, prompts["system_prompt"] + prompts["goodbye_system_prompt"], variables["welcome_goodbye_model_index"])
+                await member.guild.system_channel.send(output)
 
 async def aistudio_request(prompt, system_prompt, modelIndex = 0):
     try:
