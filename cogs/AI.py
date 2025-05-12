@@ -41,7 +41,7 @@ class AI(commands.Cog):
             return
 
         if(modules["Main"]):
-            if self.client.user in message.mentions or self.client.user.display_name in message.content:
+            if self.client.user in message.mentions or message.guild.me.display_name in message.content:
                 async with message.channel.typing():
                     prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
                     prompt = await get_replies(message, prompt)
