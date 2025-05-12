@@ -180,5 +180,5 @@ bot-env/
 /.vscode/
 
 # Security
-variables/keys.json
-variables/prompts.json
+Variables/keys.json
+Variables/prompts.json
