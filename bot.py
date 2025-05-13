@@ -2,9 +2,12 @@ import discord
 from discord.ext import commands
 import os
 from scripts.functions import load_json
+import sys
+
+name = sys.argv[1]
+
 
 keys = load_json('keys')
-variables = load_json('general')
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -13,6 +16,8 @@ intents.members = True
 contexts = discord.app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True)
 
 client = commands.Bot(command_prefix='/', intents=intents, allowed_contexts=contexts)
+
+print(name)
 
 @client.event
 async def on_ready():
@@ -34,4 +39,4 @@ async def on_ready():
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 
-client.run(keys["client_key"])
+client.run(keys[name]["client_key"])
