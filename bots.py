@@ -3,7 +3,7 @@ import sys
 import subprocess
 from scripts.functions import load_json
 
-keys = load_json("keys")
+variables = load_json("general")
 
-for bot in keys["Bots"]:
+for bot in variables["Bots"]:
     os.system(f"start cmd.exe /c StartBot.bat {bot}")

@@ -6,7 +6,6 @@ import sys
 
 name = sys.argv[1]
 
-
 keys = load_json('keys')
 
 intents = discord.Intents.default()
@@ -16,8 +15,7 @@ intents.members = True
 contexts = discord.app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True)
 
 client = commands.Bot(command_prefix='/', intents=intents, allowed_contexts=contexts)
-
-print(name)
+client.main_name = name
 
 @client.event
 async def on_ready():
