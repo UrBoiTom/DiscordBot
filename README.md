@@ -34,9 +34,12 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
 2.  **Configure API Keys (`variables/keys.json`):**
     Rename `keys.EXAMPLE.json` to `keys.json` inside the `variables` directory with your API keys:
     ```json
-    {
-      "client_key": "YOUR_DISCORD_BOT_TOKEN",
-      "ai_studio_key": "YOUR_GOOGLE_AI_STUDIO_API_KEY"
+    { 
+       "Bot":
+       {
+           "client_key":"YOUR_DISCORD_BOT_TOKEN"
+       },
+       "ai_studio_key": "YOUR_GOOGLE_AI_STUDIO_API_KEY"
     }
     ```
 
@@ -44,10 +47,12 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
     Rename `prompts.EXAMPLE.json` to `prompts.json` inside the `variables` directory. This defines the instructions given to the AI. Adjust the prompts to shape the bot's personality and responses.
     - An example system prompt is provided, either replace all of the text between backticks ` with the appropriate value or write your own.
 
-5.  **Configure General Settings (`variables/general.json`):**
+4.  **Configure General Settings (`variables/general.json`):**
     General variables are controlled by a file named `general.json` inside the `variables` directory.
     *   Make sure the model names listed in `"ai_studio"` are valid models accessible via your API key. Check the Google AI documentation for available models.
     *   Make sure to change `"owner_id"` to **YOUR** discord ID.
+5.  **Configure modules (`variables/modules.json`):** Modules are controlled by a file named `modules.json` inside the `variables` directory.
+       * Set the value of any module you don't want to use to `false`
 
 6.  **Install and start the bot:**
 
@@ -74,6 +79,29 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
     *   `/tags user:@SomeUser`: Get the link and mention the specified user.
 *   **Welcome/Goodbye:** These messages are triggered automatically when members join or leave the server, provided the bot has permission to see these events and post in the configured system channel.
 
+## Multi bot support
+
+*   **Create a brand new discord bot**
+*   **Adding settings:** Open the `keys.json`, `prompts.json` and `modules.json` files in the `variables` folder and duplicate the `"Bot":{}` field in each, rename the new duplicated `"Bot"` to a different name, ensuring it is the same across all 3 files, and re-configure the new fields as desired, similar to how it is done in steps 2-5 of [Setup & Installation](https://github.com/Sorro123/DiscordBot/edit/main/README.md#setup--installation), for exampl:
+
+      ```json
+      { 
+         "Bot":
+         {
+             "client_key":"YOUR_DISCORD_BOT_TOKEN"
+         },
+         "Bot2":
+         {
+            "client_key":"YOUR_DISCORD_BOT_TOKEN"
+         },
+         "ai_studio_key": "YOUR_GOOGLE_AI_STUDIO_API_KEY"
+      }
+      ```
+*   **Activating new bot:** Open the `general` file in the `variales` folder and add the new name to the `"Bots"` array, for example:
+
+      ```json
+      "Bots":["Bot", "Bot2"],
+      ```
 ## Contributing
 
 Contributions are welcome! If you have suggestions for improvements or find bugs, please feel free to open an issue or submit a pull request.
