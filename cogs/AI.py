@@ -37,11 +37,13 @@ class AI(commands.Cog):
                 if(re.search(r"!Timeout <@[0-9]+>", message.content)):
                     for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
                         member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
-                        await member.timeout(timedelta(minutes=5), reason="Because Riley said so.")
+                        await member.timeout(timedelta(minutes=variables["timeout_duration_minutes"]), reason=variables["timeout_reason"])
+            return
+        if message.author.bot:
             return
 
         if(modules[self.client.main_name]["Main"]):
-            if self.client.user in message.mentions or message.guild.me.display_name in message.content:
+            if self.client.user in message.mentions or self.client.user.display_name or message.guild.me.display_name in message.content:
                 async with message.channel.typing():
                     prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
                     prompt = await get_replies(message, prompt)
@@ -69,7 +71,7 @@ class AI(commands.Cog):
                     output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"] + prompts["goodbye_system_prompt"], variables["welcome_goodbye_model_index"])
                 await member.guild.system_channel.send(output)
 
-async def aistudio_request(prompt, system_prompt, modelIndex = 0):
+async def aistudio_request(prompt, system_prompt, modelIndex = variables["default_ai_model_index"]):
     try:
         response = await asyncio.wait_for(
             asyncio.to_thread(genai_client.models.generate_content,
