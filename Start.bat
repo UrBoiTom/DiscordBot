@@ -1,4 +1,4 @@
 @echo off
 call bot-env\Scripts\activate.bat
-py bot.py
+bot-env\Scripts\python.exe bots.py
 pause
