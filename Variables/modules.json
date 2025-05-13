@@ -1,6 +1,9 @@
 {
-    "Main":true,
-    "Timeout":true,
-    "Welcome":true,
-    "Goodbye":true
+    "Bot":
+    {
+        "Main":true,
+        "Timeout":true,
+        "Welcome":true,
+        "Goodbye":true
+    }
 }

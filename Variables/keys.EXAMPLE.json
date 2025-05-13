@@ -1,4 +1,7 @@
 {
-    "client_key":"Key",
+    "Bot":
+    {
+        "client_key":"Key"
+    },
     "ai_studio_key": "Key"
 }
