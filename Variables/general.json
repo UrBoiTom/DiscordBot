@@ -8,6 +8,7 @@
             "gemini-exp-1206"
         ]
     },
+    "Bots":["Bot"],
     "ai_provider":"ai_studio",
     "default_ai_model_index": 0,
     "welcome_goodbye_model_index": 2,
