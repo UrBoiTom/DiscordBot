@@ -6,7 +6,7 @@ from scripts.functions import load_json
 variables = load_json("general")
 
 def run_script(bot_name):
-    subprocess.run(f"bot-env\Scripts\python.exe bot.py {bot_name}")
+    subprocess.run(f"bot-env\\Scripts\\python.exe bot.py {bot_name}")
 
 botThreads = []
 
