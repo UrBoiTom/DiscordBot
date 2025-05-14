@@ -1,9 +1,7 @@
-import os
-import sys
 import subprocess
-from scripts.functions import load_json
 import threading
-import subprocess
+from scripts.functions import load_json
+
 
 variables = load_json("general")
 
