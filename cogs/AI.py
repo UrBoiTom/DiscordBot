@@ -6,7 +6,7 @@ from google.genai import types # type: ignore
 import re
 from datetime import timedelta
 import asyncio
-from scripts.functions import load_json
+from scripts.functions import load_json, has_name
 
 keys = load_json('keys')
 prompts = load_json('prompts')
@@ -43,7 +43,7 @@ class AI(commands.Cog):
             return
 
         if(modules[self.client.main_name]["Main"]):
-            if self.client.user in message.mentions or self.client.user.display_name in message.content or message.guild.me.display_name in message.content:
+            if self.client.user in message.mentions or has_name(self.client.user.display_name, message):
                 async with message.channel.typing():
                     prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
                     prompt = await get_replies(message, prompt)

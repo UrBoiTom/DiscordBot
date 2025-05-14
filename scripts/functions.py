@@ -12,3 +12,7 @@ def load_json(filename):
     except json.JSONDecodeError as e:
         print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
         raise # Re-raise the exception
+
+def has_name(backup_name, message):
+    if(message.guild): return message.guild.me.display_name.lower() in message.content.lower()
+    else: return backup_name.lower() in message.content.lower()
