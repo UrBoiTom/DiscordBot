@@ -2,8 +2,21 @@ import os
 import sys
 import subprocess
 from scripts.functions import load_json
+import threading
+import subprocess
 
 variables = load_json("general")
 
-for bot in variables["Bots"]:
-    os.system(f"start cmd.exe /c Bot.bat {bot}")
+def run_script(bot_name):
+    subprocess.run(f"python bot.py {bot_name}")
+
+botThreads = []
+
+if __name__ == "__main__":
+    for bot in variables["Bots"]:
+        botThread = threading.Thread(target=run_script, args=(bot,))
+        botThreads.append(botThread)
+        botThread.start()
+    
+    for thread in botThreads:
+        thread.join()
