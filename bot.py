@@ -3,7 +3,6 @@ from discord.ext import commands
 import os
 import sys
 import scripts.functions as functions
-functions.reload(functions)
 
 name = sys.argv[1]
 
