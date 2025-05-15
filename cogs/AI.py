@@ -23,13 +23,14 @@ class AI(commands.Cog):
 
     
     @app_commands.command(name="message", description="Activates the AI features through a command.")
-    async def message(self, interaction: discord.Interaction, msg: str):
+    async def message(self, interaction: discord.Interaction, msg: str, img: discord.Attachment = None):
         await interaction.response.defer(thinking=True)
         prompt = f"Sender ID: {interaction.user.id}\nSender Name: {interaction.user.display_name}\nMessage: {msg}"
+        if img and "image" in img.content_type:
+            prompt = [functions.image(img.url), prompt]
         print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
         if(variables["ai_provider"] == "ai_studio"):
             output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"])
-        print("ready")
         await interaction.edit_original_response(content=output)
 
     @commands.Cog.listener()
