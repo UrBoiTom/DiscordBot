@@ -1,6 +1,9 @@
-from discord.ext import commands
 import json
 import discord
+import importlib
+
+def reload(module):
+    importlib.reload(module)
 
 def load_json(filename):
     filepath = f'variables/{filename}.json'

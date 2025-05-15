@@ -6,9 +6,8 @@ from google.genai import types # type: ignore
 import re
 from datetime import timedelta
 import asyncio
-from importlib import reload
 import scripts.functions as functions
-reload(functions)
+functions.reload(functions)
 
 
 keys = functions.load_json('keys')

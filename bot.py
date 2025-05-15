@@ -2,9 +2,8 @@ import discord
 from discord.ext import commands
 import os
 import sys
-from importlib import reload
 import scripts.functions as functions
-reload(functions)
+functions.reload(functions)
 
 name = sys.argv[1]
 

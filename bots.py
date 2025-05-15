@@ -1,8 +1,7 @@
 import subprocess
 import threading
-from importlib import reload
 import scripts.functions as functions
-reload(functions)
+functions.reload(functions)
 
 
 variables = functions.load_json("general")

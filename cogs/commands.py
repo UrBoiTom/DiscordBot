@@ -2,9 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
-from importlib import reload
 import scripts.functions as functions
-reload(functions)
+functions.reload(functions)
 
 variables = functions.load_json('general')
 
