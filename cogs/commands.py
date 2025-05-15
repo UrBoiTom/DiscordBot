@@ -51,12 +51,7 @@ class Commands(commands.Cog):
             await interaction.response.send_message("Only the bot's owner can use this command.", ephemeral=True)
 
     @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
-    @app_commands.choices(part=[
-            app_commands.Choice(name="All", value="all"),
-            app_commands.Choice(name="Git", value="git"),
-            app_commands.Choice(name="Pip", value="pip"),
-            ])
-    async def update(self, interaction: discord.Interaction, part = all):
+    async def update(self, interaction: discord.Interaction):
         if interaction.user.id == variables["owner_id"]:
             await interaction.response.defer(ephemeral=True)
             try:
@@ -85,7 +80,7 @@ class Commands(commands.Cog):
                     pip_output = pip_install_result.stdout.strip()
                     if pip_install_result.stderr:
                         pip_output += f"\n\nPip Stderr:\n{pip_install_result.stderr.strip()}"
-                    await interaction.followup.send(f"Update successful:\n\nGit Pull:\n```\n{git_output}\n```\n\nPip Install:\n```\n{pip_output}\n```", ephemeral=True)
+                    await interaction.followup.send(f"Update successful:\n\nGit Pull:\n```\n{git_output}\n```\nPip Install Successful", ephemeral=True)
                 except subprocess.CalledProcessError as e_pip:
                     pip_fail_output = f"Pip install failed:\n```\n{e_pip.stdout.strip()}\n{e_pip.stderr.strip()}\n```"
                     await interaction.followup.send(f"Git pull successful, but Pip install failed:\n\nGit Pull:\n```\n{git_output}\n```\n\n{pip_fail_output}", ephemeral=True)
