@@ -47,7 +47,7 @@ class AI(commands.Cog):
         if(modules[self.client.main_name]["Main"]):
             if self.client.user in message.mentions or functions.has_name(self.client.user.display_name, message):
                 async with message.channel.typing():
-                    prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
+                    prompt = functions.sort_content(message)
                     prompt = await functions.get_replies(message, prompt)
                     print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
                     if(variables["ai_provider"] == "ai_studio"):

@@ -1,6 +1,9 @@
 import json
 import discord
 import importlib
+from PIL import Image
+import requests
+from io import BytesIO
 
 def reload(module):
     importlib.reload(module)
@@ -47,3 +50,16 @@ async def get_replies(message, string):
 def has_name(backup_name, message):
     if(message.guild): return message.guild.me.display_name.lower() in message.content.lower()
     else: return backup_name.lower() in message.content.lower()
+
+def sort_content(message):
+    if message.attachments:
+        output = []
+        has_images = False
+        for attachment in message.attachments:
+            if "image" in attachment.content_type:
+                has_images = True
+                output.append(Image.open(BytesIO(requests.get(attachment.url).content)))
+        if(has_images):
+            output.append(f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}")
+            return output
+    return f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
