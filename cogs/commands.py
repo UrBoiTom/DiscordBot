@@ -53,20 +53,39 @@ class Commands(commands.Cog):
     @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
     async def update(self, interaction: discord.Interaction):
         if interaction.user.id == variables["owner_id"]:
-            await interaction.response.defer(ephemeral=True) # Defer the response as git pull might take time
+            await interaction.response.defer(ephemeral=True)
             try:
                 # Run the git pull command
-                result = subprocess.run(
+                git_pull_result = subprocess.run(
                     ['git', 'pull', '--rebase', '--autostash'],
                     capture_output=True,
                     text=True, # Capture output as text
                     cwd='.', # Run in the current directory (bot's root)
                     check=True # Raise CalledProcessError if command returns non-zero exit code
                 )
-                output = result.stdout.strip()
-                if result.stderr:
-                    output += f"\n\nStderr:\n{result.stderr.strip()}"
-                await interaction.followup.send(f"Git pull successful:\n```\n{output}\n```", ephemeral=True)
+                git_output = git_pull_result.stdout.strip()
+                if git_pull_result.stderr:
+                    git_output += f"\n\nGit Stderr:\n{git_pull_result.stderr.strip()}"
+
+                pip_output = "Pip install not attempted."
+                try:
+                    # Run pip install command
+                    pip_install_result = subprocess.run(
+                        ['pip', 'install', '-U', '-r', 'requirements.txt'],
+                        capture_output=True,
+                        text=True,
+                        cwd='.',
+                        check=True
+                    )
+                    pip_output = pip_install_result.stdout.strip()
+                    if pip_install_result.stderr:
+                        pip_output += f"\n\nPip Stderr:\n{pip_install_result.stderr.strip()}"
+                    await interaction.followup.send(f"Update successful:\n\nGit Pull:\n```\n{git_output}\n```\nPip Install Successful", ephemeral=True)
+                except subprocess.CalledProcessError as e_pip:
+                    pip_fail_output = f"Pip install failed:\n```\n{e_pip.stdout.strip()}\n{e_pip.stderr.strip()}\n```"
+                    await interaction.followup.send(f"Git pull successful, but Pip install failed:\n\nGit Pull:\n```\n{git_output}\n```\n\n{pip_fail_output}", ephemeral=True)
+                except Exception as e_pip_general:
+                    await interaction.followup.send(f"Git pull successful, but an error occurred during pip install: {e_pip_general}", ephemeral=True)
             except subprocess.CalledProcessError as e:
                 await interaction.followup.send(f"Git pull failed:\n```\n{e.stdout.strip()}\n{e.stderr.strip()}\n```", ephemeral=True)
             except Exception as e:
