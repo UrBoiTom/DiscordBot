@@ -77,8 +77,7 @@ async def aistudio_request(prompt, system_prompt, modelIndex = variables["defaul
             asyncio.to_thread(genai_client.models.generate_content,
                 model=variables["models"]["ai_studio"][modelIndex],
                 config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    max_output_tokens=450
+                    system_instruction=system_prompt
                 ),
                 contents = prompt
             ),
