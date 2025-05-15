@@ -1,9 +1,11 @@
 import subprocess
 import threading
-from scripts.functions import load_json
+from importlib import reload
+import scripts.functions as functions
+reload(functions)
 
 
-variables = load_json("general")
+variables = functions.load_json("general")
 
 def run_script(bot_name):
     subprocess.run(f"bot-env\\Scripts\\python.exe bot.py {bot_name}")

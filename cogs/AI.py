@@ -6,12 +6,15 @@ from google.genai import types # type: ignore
 import re
 from datetime import timedelta
 import asyncio
-from scripts.functions import load_json, has_name
+from importlib import reload
+import scripts.functions as functions
+reload(functions)
 
-keys = load_json('keys')
-prompts = load_json('prompts')
-variables = load_json('general')
-modules = load_json('modules')
+
+keys = functions.load_json('keys')
+prompts = functions.load_json('prompts')
+variables = functions.load_json('general')
+modules = functions.load_json('modules')
 
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
@@ -43,10 +46,10 @@ class AI(commands.Cog):
             return
 
         if(modules[self.client.main_name]["Main"]):
-            if self.client.user in message.mentions or has_name(self.client.user.display_name, message):
+            if self.client.user in message.mentions or functions.has_name(self.client.user.display_name, message):
                 async with message.channel.typing():
                     prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}"
-                    prompt = await get_replies(message, prompt)
+                    prompt = await functions.get_replies(message, prompt)
                     print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
                     if(variables["ai_provider"] == "ai_studio"):
                         output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"])
@@ -101,33 +104,6 @@ async def aistudio_request(prompt, system_prompt, modelIndex = variables["defaul
 
     output = re.sub(r"(.|\n)*Message: ", "", output)
     return output
-
-async def get_replies(message, string):
-    cachingLog = ""
-    while(message.reference and not isinstance(message.reference.resolved, discord.DeletedReferencedMessage)):
-        if(message.reference.cached_message):
-            message = message.reference.cached_message
-            cachingLog += "C"
-        else:
-            if(message.reference.resolved):
-                message = message.reference.resolved
-                cachingLog += "R"
-            else:
-                try:
-                    message = await message.channel.fetch_message(message.reference.message_id)
-                    cachingLog += "X"
-                except discord.NotFound:
-                    print(f"Warning: Could not fetch referenced message {message.reference.message_id}. Stopping reply chain traversal.")
-                    break
-                except discord.HTTPException as e:
-                    print(f"Warning: Discord API error fetching message {message.reference.message_id}: {e}. Stopping reply chain traversal.")
-                    break
-
-        string = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}\n{string}"
-
-    if(cachingLog != ""):
-        print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
-    return string
 
 async def setup(client):
     await client.add_cog(AI(client))

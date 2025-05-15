@@ -1,12 +1,14 @@
 import discord
 from discord.ext import commands
 import os
-from scripts.functions import load_json
 import sys
+from importlib import reload
+import scripts.functions as functions
+reload(functions)
 
 name = sys.argv[1]
 
-keys = load_json('keys')
+keys = functions.load_json('keys')
 
 intents = discord.Intents.default()
 intents.message_content = True
