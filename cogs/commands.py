@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
+import subprocess
 import scripts.functions as functions
 functions.reload(functions)
 
@@ -49,6 +50,30 @@ class Commands(commands.Cog):
         else:
             await interaction.response.send_message("Only the bot's owner can use this command.", ephemeral=True)
 
+    @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
+    async def update(self, interaction: discord.Interaction):
+        if interaction.user.id == variables["owner_id"]:
+            await interaction.response.defer(ephemeral=True) # Defer the response as git pull might take time
+            try:
+                # Run the git pull command
+                result = subprocess.run(
+                    ['git', 'pull', '--rebase', '--autostash'],
+                    capture_output=True,
+                    text=True, # Capture output as text
+                    cwd='.', # Run in the current directory (bot's root)
+                    check=True # Raise CalledProcessError if command returns non-zero exit code
+                )
+                output = result.stdout.strip()
+                if result.stderr:
+                    output += f"\n\nStderr:\n{result.stderr.strip()}"
+                await interaction.followup.send(f"Git pull successful:\n```\n{output}\n```", ephemeral=True)
+            except subprocess.CalledProcessError as e:
+                await interaction.followup.send(f"Git pull failed:\n```\n{e.stdout.strip()}\n{e.stderr.strip()}\n```", ephemeral=True)
+            except Exception as e:
+                await interaction.followup.send(f"An error occurred during git pull: {e}", ephemeral=True)
+        else:
+            await interaction.response.send_message("Only the bot's owner can use this command.", ephemeral=True)
+
     @app_commands.command(name="tags", description="Sends the Danbooru tag group wiki link and optionally tags a user.")
     async def tags(self, interaction: discord.Interaction, user: discord.Member = None):
         button = discord.ui.Button(label='Danbooru Tag Group Wiki', url='https://danbooru.donmai.us/wiki_pages/tag_groups')
@@ -65,6 +90,7 @@ class Commands(commands.Cog):
         embed = discord.Embed(title="Command List", description="Here are the available commands:", color=0x00ff00)
         embed.add_field(name="/help", value="Displays this help message.", inline=False)
         embed.add_field(name="/tags", value="Sends the Danbooru tag group wiki link and optionally tags a user.", inline=False)
+        embed.add_field(name="/update", value="Pulls the latest code from the repository (Owner only).", inline=False)
         embed.add_field(name="AI Features", value="To use the AI features, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the whole reply chain as context.", inline=False)
         embed.add_field(name="AI-based join and leave messages", value="Activate automatically when a member joins or leaves.", inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
