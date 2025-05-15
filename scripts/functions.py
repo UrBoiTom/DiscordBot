@@ -58,8 +58,11 @@ def image_context(message, prompt):
         for attachment in message.attachments:
             if "image" in attachment.content_type:
                 has_images = True
-                output.append(Image.open(BytesIO(requests.get(attachment.url).content)))
+                output.append(image(attachment.url))
         if(has_images):
             output.append(prompt)
             return output
     return prompt
+
+def image(url):
+    return Image.open(BytesIO(requests.get(url).content))
