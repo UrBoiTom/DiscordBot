@@ -51,7 +51,7 @@ async def get_replies(message, string):
 variables = load_json("general")
 
 def has_name(backup_name, message, bot):
-    nicknames = variables[bot]["Bot"]["nicknames"]
+    nicknames = variables[bot]["nicknames"]
     if(message.guild): nicknames.append(message.guild.me.display_name)
     else: nicknames.append(backup_name)
     for nickname in nicknames:
