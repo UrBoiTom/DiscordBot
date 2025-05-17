@@ -4,6 +4,7 @@ import importlib
 from PIL import Image
 import requests
 from io import BytesIO
+import re
 
 def reload(module):
     importlib.reload(module)
@@ -48,8 +49,8 @@ async def get_replies(message, string):
     return string
 
 def has_name(backup_name, message):
-    if(message.guild): return f" {message.guild.me.display_name.lower()} " in message.content.lower()
-    else: return f" {backup_name.lower()} " in message.content.lower()
+    if(message.guild): return re.search(fr"\b({message.guild.me.display_name.lower()})\b",message.content.lower())
+    else: return re.search(fr"\b({backup_name.lower()})\b",message.content.lower())
 
 def image_context(message, prompt):
     if message.attachments:
