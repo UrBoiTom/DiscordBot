@@ -48,9 +48,16 @@ async def get_replies(message, string):
         print(f"\n-------------------- REPLY CACHING LOG --------------------\n{cachingLog}")
     return string
 
-def has_name(backup_name, message):
-    if(message.guild): return re.search(fr"\b({message.guild.me.display_name.lower()})\b",message.content.lower())
-    else: return re.search(fr"\b({backup_name.lower()})\b",message.content.lower())
+variables = load_json("general")
+
+def has_name(backup_name, message, bot):
+    nicknames = variables[bot]["nicknames"]
+    if(message.guild): nicknames.append(message.guild.me.display_name)
+    else: nicknames.append(backup_name)
+    for nickname in nicknames:
+        if re.search(fr"\b({nickname.lower()})\b", message.content.lower()):
+            return True
+    return False
 
 def image_context(message, prompt):
     if message.attachments:
