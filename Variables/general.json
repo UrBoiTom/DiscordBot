@@ -12,5 +12,9 @@
     "welcome_goodbye_model_index": 0,
     "timeout_duration_minutes": 5,
     "timeout_reason": "",
-    "owner_id": 719513697730691113
+    "owner_id": 719513697730691113,
+    "Bot":
+    {
+        "nicknames":[]
+    }
 }
