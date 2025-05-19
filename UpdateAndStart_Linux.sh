@@ -1,4 +1,5 @@
 #!/bin/bash
+chmod +x Start_Linux.sh
 git pull --rebase --autostash
 
 if [ ! -d "bot-env" ]; then
