@@ -10,7 +10,7 @@ def reload(module):
     importlib.reload(module)
 
 def load_json(filename):
-    filepath = f'variables/{filename}.json'
+    filepath = f'Variables/{filename}.json'
     try:
         with open(filepath) as f:
             return json.load(f)
