@@ -57,13 +57,13 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
     *   **Windows:**
         Run `UpdateAndStart.bat` in the terminal or double-click the file. This script will handle dependency installation/updates and start the bot.
         ```bash
-        "UpdateAndStart - Windows.bat"
+        UpdateAndStart_Windows.bat
         ```
     *   **Linux:**
-        Make the `./UpdateAndStart - Linux.sh` script executable and then run it. This script will handle dependency installation/updates and start the bot.
+        Make the `./UpdateAndStart_Linux.sh` script executable and then run it. This script will handle dependency installation/updates and start the bot.
         ```bash
         chmod +x run.sh
-        "./UpdateAndStart - Linux.sh"
+        ./UpdateAndStart_Linux.sh
         ```
 
 ## Running the Bot
@@ -71,24 +71,25 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
 To run the bot after the initial setup:
 
 *   **Auto Update:**
-    *   **Windows:** Execute `UpdateAndStart.bat`. This script auto-pulls updates from the repository and then launches the bot.
+    *   **Windows:** Execute `UpdateAndStart_Windows.bat`. This script auto-pulls updates from the repository and then launches the bot.
         ```bash
-        "UpdateAndStart - Windows.bat"
+        UpdateAndStart_Windows.bat
         ```
-    *   **Linux:** Execute `UpdateAndStart - Linux.sh`. This script auto-pulls updates from the repository and then launches the bot.
+    *   **Linux:** Make `UpdateAndStart_Linux.sh` executable and then run it. This script auto-pulls updates from the repository and then launches the bot.
         ```bash
-        "./UpdateAndStart - Linux.sh"
+        chmod +x UpdateAndStart_Linux.sh
+        ./UpdateAndStart_Linux.sh
         ```
 
 *   **No Update:**
-    *   **Windows:** Execute `Start - Windows.bat`.
+    *   **Windows:** Execute `Start_Windows.bat`.
         ```bash
-        "Start - Windows.bat"
+        Start_Windows.bat
         ```
-    *   **Linux:** Execute `Start - Linux.sh`.
+    *   **Linux:** Execute `Start_Linux.sh`.
         
         ```bash
-        "./Start - Linux.sh"
+        ./Start_Linux.sh
         ```
 ## Usage
 
