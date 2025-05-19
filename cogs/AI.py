@@ -31,7 +31,10 @@ class AI(commands.Cog):
         print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
         if(variables["ai_provider"] == "ai_studio"):
             output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"])
-        await interaction.edit_original_response(content=output)
+        chunks = await functions.chunkify(output)
+        await interaction.edit_original_response(content=chunks[0])
+        for chunk in chunks[1:]:
+            await interaction.channel.send(chunk)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -54,7 +57,8 @@ class AI(commands.Cog):
                     print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
                     if(variables["ai_provider"] == "ai_studio"):
                         output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"])
-                    await message.reply(output)
+                    chunks = await functions.chunkify(output)
+                    await functions.send_message(message, chunks)
 
         if(modules[self.client.main_name]["Welcome"]):
             if message.type == discord.MessageType.new_member:
@@ -63,7 +67,8 @@ class AI(commands.Cog):
                     print(f"\n--------------------- NEW MEMBER ---------------------\n{prompt}")
                     if(variables["ai_provider"] == "ai_studio"):
                         output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"] + prompts["welcome_system_prompt"], variables["welcome_goodbye_model_index"])
-                    await message.reply(output)
+                    chunks = await functions.chunkify(output)
+                    await functions.send_message(message, chunks)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):

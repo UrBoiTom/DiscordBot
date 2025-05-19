@@ -59,6 +59,26 @@ def has_name(backup_name, message, bot):
             return True
     return False
 
+async def chunkify(message:str):
+    if len(message) > 2000:
+        sentences = re.split("([.!?]+)", message)
+        current_chunk = ""
+        chunks = []
+        for sentence in sentences:
+            if len(current_chunk + sentence) > 2000:
+                chunks.append(current_chunk)
+                current_chunk = sentence
+            else:
+                current_chunk += sentence
+        return chunks
+    else:
+        return [message]
+    
+async def send_message(message, chunks):
+    await message.reply(chunks[0])
+    for chunk in chunks[1:]:
+        await message.channel.send(chunk)
+
 def image_context(message, prompt):
     if message.attachments:
         output = []
