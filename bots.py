@@ -1,13 +1,17 @@
 import os
 import subprocess
 import threading
+import sys
 import scripts.functions as functions
 
 
 variables = functions.load_json("general")
 
 def run_script(bot_name):
-    python_path = os.path.join("bot-env", "bin", "python")
+    if sys.platform == "win32":
+        python_path = os.path.join("bot-env", "Scripts", "python.exe")
+    else:
+        python_path = os.path.join("bot-env", "bin", "python")
     subprocess.run([python_path, "bot.py", bot_name])
 
 botThreads = []
