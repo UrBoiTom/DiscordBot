@@ -41,8 +41,8 @@ class AI(commands.Cog):
         if message.author == self.client.user:
             if(modules[self.client.main_name]["Timeout"]):
                 if(re.search(r"!Timeout <@[0-9]+>", message.content)):
-                    for str in re.findall(r"!Timeout <@[0-9]+>", message.content):
-                        member = message.guild.get_member(int(re.search(r"[0-9]+", str).group(0)))
+                    for string in re.findall(r"!Timeout <@[0-9]+>", message.content):
+                        member = message.guild.get_member(int(re.search(r"[0-9]+", string).group(0)))
                         await member.timeout(timedelta(minutes=variables["timeout_duration_minutes"]), reason=variables["timeout_reason"])
             return
         if message.author.bot:
@@ -51,15 +51,40 @@ class AI(commands.Cog):
         if(modules[self.client.main_name]["Main"]):
             if self.client.user in message.mentions or functions.has_name(self.client.user.display_name, message, self.client.main_name):
                 async with message.channel.typing():
-                    prompt = f"Sender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}\n"
-                    prompt = await functions.get_replies(message, prompt)
-                    prompt = functions.image_context(message, prompt)
-                    print(f"\n----------------------- AI PROMPT -----------------------\n{prompt}")
+                    final_prompt_parts = []
+
+                    # 1. Get historical context
+                    history_limit = variables["ai_message_history_limit"] # Default to 5 messages
+
+                    if history_limit > 0:
+                        historical_context_parts = await functions.get_message_history_context(message, history_limit)
+                        final_prompt_parts.extend(historical_context_parts)
+
+                    # 2. Add current message's context (images first, then text)
+                    current_message_images = []
+                    if message.attachments:
+                        for attachment in message.attachments:
+                            if "image" in attachment.content_type:
+                                try:
+                                    current_message_images.append(functions.image(attachment.url))
+                                except Exception as e:
+                                    print(f"Error processing image from current message {message.id} ({attachment.filename}): {e}")
+                    final_prompt_parts.extend(current_message_images)
+
+                    timestamp_str = message.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')
+                    current_message_text = f"Timestamp: {timestamp_str}\nSender ID: {message.author.id}\nSender Name: {message.author.display_name}\nMessage: {message.content}\n"
+
+                    final_prompt_parts.append(current_message_text)
+
+                    # 3. Determine final prompt format for genai
+                    has_images = any(not isinstance(p, str) for p in final_prompt_parts)
+                    prompt_to_send = final_prompt_parts if has_images else "".join(final_prompt_parts)
+
+                    print(f"\n----------------------- AI PROMPT -----------------------\n{prompt_to_send}")
                     if(variables["ai_provider"] == "ai_studio"):
-                        output = await aistudio_request(prompt, prompts[self.client.main_name]["system_prompt"])
+                        output = await aistudio_request(prompt_to_send, prompts[self.client.main_name]["system_prompt"])
                     chunks = await functions.chunkify(output)
                     await functions.send_message(message, chunks)
-
         if(modules[self.client.main_name]["Welcome"]):
             if message.type == discord.MessageType.new_member:
                 async with message.channel.typing():
