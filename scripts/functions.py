@@ -43,7 +43,7 @@ async def get_message_history_context(current_message: discord.Message, limit: i
         # Handle images for this historical message
         if msg.attachments:
             for attachment in msg.attachments:
-                if "image" in attachment.content_type:
+                if attachment.content_type and "image" in attachment.content_type:
                     try:
                         img_obj = image(attachment.url) # image() returns PIL.Image
                         msg_specific_parts.append(img_obj)
