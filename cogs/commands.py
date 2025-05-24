@@ -58,14 +58,12 @@ class Commands(commands.Cog):
         name='config', 
         description='Configuration commands', 
         allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=False), 
-        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=False, private_channel=False)
+        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=False, private_channel=False),
+        default_permissions=discord.Permissions(administrator=True)
     )
 
     @config.command(name="modules", description="Changes bot module config.")
-    @app_commands.choices(
-        module=modules
-        )
-    @app_commands.default_permissions(administrator=True)
+    @app_commands.choices(module=modules)
     async def config_modules(self, interaction: discord.Interaction, module: app_commands.Choice[str], value: bool):
         config = functions.load_json(f"config/{self.client.main_name}/{interaction.guild.id}")
         if(config["Modules"][module.value] != value):
