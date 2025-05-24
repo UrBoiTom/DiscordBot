@@ -1,6 +1,6 @@
 {
     "Modules": {
-        "Main": false,
+        "Main": true,
         "Timeout": true,
         "Welcome": true,
         "Goodbye": true
