@@ -7,6 +7,10 @@ import scripts.functions as functions
 functions.reload(functions)
 
 variables = functions.load_json('Variables/general')
+default_config = functions.load_json('config/default_config')
+modules = []
+for module in default_config["Modules"]:
+    modules.append(app_commands.Choice(name=module, value=module))
 
 class Commands(commands.Cog):
     def __init__(self, client):
@@ -49,6 +53,27 @@ class Commands(commands.Cog):
                 await interaction.response.send_message(f"Failed to sync commands: {e}", ephemeral=True)
         else:
             await interaction.response.send_message(f"Part not recognised", ephemeral=True)
+
+    config = app_commands.Group(
+        name='config', 
+        description='Configuration commands', 
+        allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=False), 
+        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=False, private_channel=False)
+    )
+
+    @config.command(name="modules", description="Changes bot module config.")
+    @app_commands.choices(
+        module=modules
+        )
+    @app_commands.default_permissions(administrator=True)
+    async def config_modules(self, interaction: discord.Interaction, module: app_commands.Choice[str], value: bool):
+        config = functions.load_json(f"config/{self.client.main_name}/{interaction.guild.id}")
+        if(config["Modules"][module.value] != value):
+            config["Modules"][module.value] = value
+            functions.save_json(config, f"config/{self.client.main_name}/{interaction.guild.id}")
+            await interaction.response.send_message(f"Value of {module.name} set to {value}", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"{module.name} already has that value", ephemeral=True)
 
     @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
     @app_commands.check(is_owner)

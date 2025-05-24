@@ -38,7 +38,7 @@ class AI(commands.Cog):
     async def on_message(self, message):
         config = functions.load_json(f"config/{self.client.main_name}/{message.guild.id}")
         if message.author == self.client.user:
-            if(config["modules"]["Timeout"]):
+            if(config["Modules"]["Timeout"]):
                 if(re.search(r"!Timeout <@[0-9]+>", message.content)):
                     for string in re.findall(r"!Timeout <@[0-9]+>", message.content):
                         member = message.guild.get_member(int(re.search(r"[0-9]+", string).group(0)))
@@ -47,7 +47,7 @@ class AI(commands.Cog):
         if message.author.bot:
             return
 
-        if(config["modules"]["Main"]):
+        if(config["Modules"]["Main"]):
             if self.client.user in message.mentions or functions.has_name(self.client.user.display_name, message, self.client.main_name):
                 async with message.channel.typing():
                     final_prompt_parts = []
@@ -84,7 +84,7 @@ class AI(commands.Cog):
                         output = await aistudio_request(prompt_to_send, prompts[self.client.main_name]["system_prompt"])
                     chunks = await functions.chunkify(output)
                     await functions.send_message(message, chunks)
-        if(config["modules"]["Welcome"]):
+        if(config["Modules"]["Welcome"]):
             if message.type == discord.MessageType.new_member:
                 async with message.channel.typing():
                     prompt = f"New User ID: {message.author.id}\nNew User Name: {message.author.display_name}"
@@ -97,7 +97,7 @@ class AI(commands.Cog):
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         config = functions.load_json(f"config/{self.client.main_name}/{member.guild.id}")
-        if(config["modules"]["Goodbye"]):
+        if(config["Modules"]["Goodbye"]):
             if member.guild.system_channel:
                 prompt = f"\nServer Name: {member.guild.name}\nUser that left ID: {member.id}\nUser that left name: {member.display_name}"
                 print(f"\n--------------------- MEMBER LEAVE ---------------------\n{prompt}")

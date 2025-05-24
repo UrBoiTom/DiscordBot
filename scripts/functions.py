@@ -22,6 +22,16 @@ def load_json(filepath):
         print(f"Error: Could not decode JSON from '{filepath}'. Check the file format. Details: {e}")
         raise # Re-raise the exception
 
+def save_json(data, filepath):
+    filepath = f'{os.path.join(*filepath.split("/"))}.json'
+    try:
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        print(f"Error: Could not save JSON to '{filepath}'. Details: {e}")
+        raise # Re-raise the exception
+
+
 async def get_message_history_context(current_message: discord.Message, limit: int):
     """
     Fetches the last 'limit' messages from the channel (before current_message)
