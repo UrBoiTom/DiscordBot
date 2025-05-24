@@ -182,3 +182,4 @@ bot-env/
 # Security
 Variables/keys.json
 Variables/prompts.json
+config/*/

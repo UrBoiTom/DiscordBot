@@ -6,7 +6,7 @@ import subprocess
 import scripts.functions as functions
 functions.reload(functions)
 
-variables = functions.load_json('general')
+variables = functions.load_json('Variables/general')
 
 class Commands(commands.Cog):
     def __init__(self, client):

@@ -5,12 +5,13 @@ from PIL import Image
 import requests
 from io import BytesIO
 import re
+import os
 
 def reload(module):
     importlib.reload(module)
 
-def load_json(filename):
-    filepath = f'Variables/{filename}.json'
+def load_json(filepath):
+    filepath = f'{os.path.join(*filepath.split("/"))}.json'
     try:
         with open(filepath) as f:
             return json.load(f)
@@ -56,7 +57,7 @@ async def get_message_history_context(current_message: discord.Message, limit: i
         context_parts.extend(msg_specific_parts)
     return context_parts
 
-variables = load_json("general")
+variables = load_json("Variables/general")
 
 def has_name(backup_name, message, bot):
     nicknames = variables[bot]["nicknames"]

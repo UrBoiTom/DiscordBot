@@ -6,7 +6,7 @@ import scripts.functions as functions
 
 name = sys.argv[1]
 
-keys = functions.load_json('keys')
+keys = functions.load_json('Variables/keys')
 
 intents = discord.Intents.default()
 intents.message_content = True
