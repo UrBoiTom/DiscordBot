@@ -36,7 +36,10 @@ class AI(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        config = functions.load_json(f"config/{self.client.main_name}/{message.guild.id}")
+        if message.guild is None:
+            config = functions.load_json(f"config/default_config")
+        else:
+            config = functions.load_json(f"config/{self.client.main_name}/{message.guild.id}")
         if message.author == self.client.user:
             if(config["Modules"]["Timeout"]):
                 if(re.search(r"!Timeout <@[0-9]+>", message.content)):
