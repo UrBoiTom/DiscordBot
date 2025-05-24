@@ -5,7 +5,7 @@ import sys
 import scripts.functions as functions
 
 
-variables = functions.load_json("general")
+variables = functions.load_json("Variables/general")
 
 def run_script(bot_name):
     if sys.platform == "win32":
