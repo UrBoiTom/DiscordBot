@@ -129,9 +129,11 @@ class Commands(commands.Cog):
     async def help_command(self, interaction: discord.Interaction):
         embed = discord.Embed(title="Command List", description="Here are the available commands:", color=0x00ff00)
         embed.add_field(name="/help", value="Displays this help message.", inline=False)
+        embed.add_field(name="/message", value="Activates the AI features. You can provide a message and optionally an image.", inline=False)
         embed.add_field(name="/tags", value="Sends the Danbooru tag group wiki link and optionally tags a user.", inline=False)
+        embed.add_field(name="/config modules [module] [value]", value="Changes bot module configuration (Administrator only).", inline=False)
         embed.add_field(name="/update", value="Pulls the latest code from the repository (Owner only).", inline=False)
-        embed.add_field(name="AI Features", value="To use the AI features, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the whole reply chain as context.", inline=False)
+        embed.add_field(name="AI Chat", value="To chat with the AI, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the recent conversation history as context.", inline=False)
         embed.add_field(name="AI-based join and leave messages", value="Activate automatically when a member joins or leaves.", inline=False)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
