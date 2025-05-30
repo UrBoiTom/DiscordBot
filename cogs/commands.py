@@ -198,7 +198,8 @@ class Commands(commands.Cog):
         embed.add_field(name="/join", value="Joins the voice channel you are currently in.", inline=True)
         embed.add_field(name="/leave", value="Leaves the voice channel the bot is currently in.", inline=True)
         embed.add_field(name="/tts `<message>`", value="AI-based text-to-speech in the current voice channel. You can also use `~<message>`, without needing a command, for quick TTS.", inline=True)
-        embed.add_field(name="/voice `<prompt>`", value="Sets a custom voice prompt for your TTS messages. Example: `/voice prompt:Say the following message`", inline=True)
+        embed.add_field(name="/voice prompt `<prompt_text>`", value="Sets a custom prefix for your TTS messages. Example: `/voice prompt:Say the following message in a french accent`", inline=True)
+        embed.add_field(name="/voice gender `<gender>`", value="Sets the gender for your TTS voice (Male/Female).", inline=True)
 
         # Admin/Owner Commands
         embed.add_field(name="Moderation & Bot Management (Restricted)", value="---", inline=False)
