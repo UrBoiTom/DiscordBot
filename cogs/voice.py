@@ -4,13 +4,14 @@ from discord.ext import commands
 from google import genai
 from google.genai import types # type: ignore
 import io
-import re
+import imageio_ffmpeg
 import scripts.functions as functions
 functions.reload(functions)
 
 keys = functions.load_json('Variables/keys')
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
+FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 ffmpeg_options = {
     'before_options': '-f s16le -ar 24000 -ac 1',
     'options': '-vn',
@@ -65,7 +66,7 @@ class Voice(commands.Cog):
                 data = await generate_audio(message)
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
-                interaction.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, pipe=True, **ffmpeg_options), after=lambda e: print(f'Player error: {e}') if e else None)
+                interaction.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: print(f'Player error: {e}') if e else None)
             except Exception as e:
                 await interaction.edit_original_response(content=f"Error: {e}")
                 return
@@ -93,7 +94,7 @@ class Voice(commands.Cog):
                 data = await generate_audio(message.content)
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
-                message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
+                message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
             except Exception as e:
                 await message.reply(f"Error: {e}", delete_after=10)
                 return
