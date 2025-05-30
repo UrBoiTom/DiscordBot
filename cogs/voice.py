@@ -92,7 +92,7 @@ class Voice(commands.Cog):
                 message.content = message.content[1:]
             
             try:
-                data = await generate_audio(message.content, get_voice_prompt(message.user.id))
+                data = await generate_audio(message.content, get_voice_prompt(message.author.id))
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
                 message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
@@ -103,9 +103,9 @@ class Voice(commands.Cog):
 
 def get_voice_prompt(id):
     if f"{str(id)}.json" in os.listdir(os.path.join("config", "voice")):
-        path = os.path.join("config", "voice", f"{str(id)}.json")
+        path = f"config/voice/{str(id)}"
     else:
-        path = os.path.join("config", "default_voice.json")
+        path = "config/default_voice"
     return functions.load_json(path)["voice_prompt"]
 
 async def generate_audio(message, voice_prompt):
