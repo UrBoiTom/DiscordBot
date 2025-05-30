@@ -2,6 +2,7 @@ from discord.ext import commands
 import os
 import json
 import copy
+import shutil
 import scripts.functions as functions
 functions.reload(functions)
 
@@ -53,12 +54,16 @@ class startup(commands.Cog):
 
         for guild in self.client.guilds:
             if not f"{str(guild.id)}.json" in os.listdir(os.path.join("config", self.client.main_name)):
-                os.popen(f'copy {os.path.join("config", "default_config.json")} {os.path.join("config", self.client.main_name, str(guild.id))}.json')
+                source_path = os.path.join("config", "default_config.json")
+                destination_path = os.path.join("config", self.client.main_name, f"{str(guild.id)}.json")
+                shutil.copy2(source_path, destination_path)
     
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         if not f"{str(guild.id)}.json" in os.listdir(os.path.join("config", self.client.main_name)):
-                os.popen(f'copy {os.path.join("config", "default_config.json")} {os.path.join("config", self.client.main_name, str(guild.id))}.json')
+                source_path = os.path.join("config", "default_config.json")
+                destination_path = os.path.join("config", self.client.main_name, f"{str(guild.id)}.json")
+                shutil.copy2(source_path, destination_path)
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):

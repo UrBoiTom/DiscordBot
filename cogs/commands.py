@@ -27,20 +27,35 @@ class Commands(commands.Cog):
             ])
     async def reload(self, interaction: discord.Interaction, part: app_commands.Choice[str]):
         if(part.value == "cogs"):
-            string = ""
+            message_parts = []
             try:
-                for cog in os.listdir('cogs'):
-                    if cog.endswith('.py'):
+                # Get cogs currently in the filesystem
+                filesystem_cogs = {f'cogs.{cog[:-3]}' for cog in os.listdir('cogs') if cog.endswith('.py')}
+                # Get cogs currently loaded by the bot
+                loaded_cogs = set(self.client.extensions.keys())
+
+                # Cogs to unload (loaded but not in filesystem)
+                cogs_to_unload = [cog_name for cog_name in loaded_cogs if cog_name.startswith('cogs.') and cog_name not in filesystem_cogs]
+                for cog_name in cogs_to_unload:
+                    try:
+                        await self.client.unload_extension(cog_name)
+                        message_parts.append(f"Unloaded {cog_name.split('.')[-1]}.py")
+                    except Exception as e:
+                        message_parts.append(f'Failed to unload extension {cog_name.split(".")[-1]}.py: {e}')
+
+                # Cogs to load or reload (in filesystem)
+                for cog_file in os.listdir('cogs'):
+                    if cog_file.endswith('.py'):
+                        cog_name = f'cogs.{cog_file[:-3]}'
                         try:
-                            await self.client.load_extension(f'cogs.{cog[:-3]}')
-                            string += f"\nLoaded {cog}"
+                            await self.client.load_extension(cog_name)
+                            message_parts.append(f"Loaded {cog_file}")
                         except commands.ExtensionAlreadyLoaded:
-                            await self.client.reload_extension(f'cogs.{cog[:-3]}')
-                            string+= f"\nReloaded {cog}"
+                            await self.client.reload_extension(cog_name)
+                            message_parts.append(f"Reloaded {cog_file}")
                         except Exception as e:
-                            string += f'\nFailed to load extension {cog}: {e}\n'
-                
-                await interaction.response.send_message(f"Cogs reloaded:{string}", ephemeral=True)
+                            message_parts.append(f'Failed to load/reload extension {cog_file}: {e}')
+                await interaction.response.send_message(f"Cogs processed:\n" + "\n".join(message_parts), ephemeral=True)
             except Exception as e:
                 await interaction.response.send_message(f"Cogs failed to reload:{e}", ephemeral=True)
         elif (part.value == "commands"):
