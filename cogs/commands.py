@@ -122,9 +122,9 @@ class Commands(commands.Cog):
                 destination_path = os.path.join("config", "voice", f"{str(interaction.user.id)}.json")
                 shutil.copy2(source_path, destination_path)
         config = functions.load_json(f"config/voice/{interaction.user.id}")
-        #config["voice_prompt"]
+        config["voice_gender"] = gender
         functions.save_json(config, f"config/voice/{interaction.user.id}")
-        await interaction.response.send_message(f"Voice prompt set", ephemeral=True)
+        await interaction.response.send_message(f"Voice gender set", ephemeral=True)
 
     @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
     @app_commands.check(is_owner)
