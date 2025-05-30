@@ -4,6 +4,7 @@ from discord.ext import commands
 from google import genai
 from google.genai import types # type: ignore
 import io
+import re
 import scripts.functions as functions
 functions.reload(functions)
 
@@ -71,10 +72,37 @@ class Voice(commands.Cog):
             await interaction.guild.voice_client.channel.send(f"<@{interaction.user.id}>: {message}")
             await interaction.edit_original_response(content="TTS complete.")
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.guild is None:
+            return
+        if message.author.bot:
+            return
+        
+        if message.content.startswith("~"):
+            if(message.guild.voice_client is None):
+                await message.reply("I am not in any voice channel.", delete_after=5)
+                return
+
+            if message.content.startswith("~ "):
+                message.content = message.content[2:]
+            else:
+                message.content = message.content[1:]
+            
+            try:
+                data = await generate_audio(message.content)
+                audio_buffer = io.BytesIO(data)
+                audio_buffer.seek(0)
+                message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
+            except Exception as e:
+                await message.reply(f"Error: {e}", delete_after=10)
+                return
+            await message.reply(content="TTS complete.", delete_after=5)
+
 async def generate_audio(message):
     response = genai_client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
-        contents=f"Say: {message}",
+        contents=f"Say the following message: {message}",
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(

@@ -127,12 +127,32 @@ class Commands(commands.Cog):
     
     @app_commands.command(name="help", description="See more info about commands")
     async def help_command(self, interaction: discord.Interaction):
-        embed = discord.Embed(title="Command List", description="Here are the available commands:", color=0x00ff00)
-        embed.add_field(name="/help", value="Displays this help message.", inline=False)
-        embed.add_field(name="/tags", value="Sends the Danbooru tag group wiki link and optionally tags a user.", inline=False)
-        embed.add_field(name="/update", value="Pulls the latest code from the repository (Owner only).", inline=False)
-        embed.add_field(name="AI Features", value="To use the AI features, simply mention the bot in a message, or reply to a message the bot sent. The bot will reply to your message, taking the whole reply chain as context.", inline=False)
-        embed.add_field(name="AI-based join and leave messages", value="Activate automatically when a member joins or leaves.", inline=False)
+        embed = discord.Embed(title="Bot Command Guide", description="Here's a list of available commands and features:", color=discord.Color.green())
+
+        # General Commands
+        embed.add_field(name="General Commands", value="---", inline=False)
+        embed.add_field(name="/help", value="Displays this help message.", inline=True)
+        embed.add_field(name="/tags `[user]`", value="Sends the Danbooru tag group wiki link. Optionally tags a `user`.", inline=True)
+
+        # AI Commands
+        embed.add_field(name="AI Commands", value="---", inline=False)
+        embed.add_field(name="/message `<msg>` `[img]`", value="Send a message to the AI. Optionally attach an `img`.", inline=True)
+        embed.add_field(name="AI Chat", value="Mention the bot or reply to its messages to chat with the AI. It considers message history for context.", inline=True)
+        embed.add_field(name="AI Welcome/Goodbye", value="Automatic AI-generated messages when a member joins or leaves (if enabled).", inline=True)
+
+        # Voice Commands
+        embed.add_field(name="Voice Commands", value="---", inline=False)
+        embed.add_field(name="/join", value="Joins the voice channel you are currently in.", inline=True)
+        embed.add_field(name="/leave", value="Leaves the voice channel the bot is currently in.", inline=True)
+        embed.add_field(name="/tts `<message>`", value="AI-based text-to-speech in the current voice channel. You can also use `~<message>`, without needing a command, for quick TTS.", inline=True)
+
+        # Admin/Owner Commands
+        embed.add_field(name="Moderation & Bot Management (Restricted)", value="---", inline=False)
+        embed.add_field(name="/config modules `<module>` `<value>`", value="Enable or disable bot modules (Admin only).", inline=True)
+        embed.add_field(name="/reload `<part>`", value="Reloads bot cogs or commands (Owner only).", inline=True)
+        embed.add_field(name="/update", value="Pulls the latest code and updates dependencies (Owner only).", inline=True)
+
+        embed.set_footer(text="Use commands by typing '/' in the chat.")
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(client):
