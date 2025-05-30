@@ -114,18 +114,25 @@ def get_voice_prompt(id):
         path = f"config/voice/{str(id)}"
     else:
         path = "config/default_voice"
-    return functions.load_json(path)["voice_prompt"]
+    return functions.load_json(path)
 
-async def generate_audio(message, voice_prompt):
+def voices(num):
+    switcher = {
+        0: "Algenib",
+        1: "Aoede",
+    }
+    return switcher.get(num, "Zephyr")
+
+async def generate_audio(message, config):
     response = genai_client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
-        contents=f"{voice_prompt}: {message}",
+        contents=f"{config["voice_prompt"]}: {message}",
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name='Kore',
+                        voice_name=voices(config["voice_gender"]),
                     )
                 )
             ),

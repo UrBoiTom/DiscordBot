@@ -1,6 +1,5 @@
 from discord.ext import commands
 import os
-import json
 import copy
 import shutil
 import scripts.functions as functions
@@ -10,20 +9,27 @@ class startup(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-        default_config = functions.load_json("config/default_config")
-        bot_config_dir = os.path.join("config", self.client.main_name)
 
-        if not os.path.exists(bot_config_dir):
-            os.mkdir(bot_config_dir)
+        for guild in self.client.guilds:
+            if not f"{str(guild.id)}.json" in os.listdir(os.path.join("config", self.client.main_name)):
+                source_path = os.path.join("config", "default_config.json")
+                destination_path = os.path.join("config", self.client.main_name, f"{str(guild.id)}.json")
+                shutil.copy2(source_path, destination_path)
 
         current_guild_files = [f"{str(guild.id)}.json" for guild in self.client.guilds]
-        for file in os.listdir(bot_config_dir):
+        for file in os.listdir(os.path.join("config", self.client.main_name)):
             if file.endswith(".json"):
-                full_config_file_path = os.path.join(bot_config_dir, file)
+                full_config_file_path = os.path.join("config", self.client.main_name, file)
                 if file not in current_guild_files:
                     os.remove(full_config_file_path)
-                else:
-                    path_for_json_func = os.path.join("config", self.client.main_name, file.removesuffix(".json"))
+
+        def refresh_files(default_config, config_dir):
+            if not os.path.exists(config_dir):
+                os.mkdir(config_dir)
+            for file in os.listdir(config_dir):
+                if file.endswith(".json"):
+                    full_config_file_path = os.path.join(config_dir, file)
+                    path_for_json_func = os.path.join(config_dir, file.removesuffix(".json"))
 
                     current_guild_config_data = functions.load_json(path_for_json_func)
 
@@ -50,13 +56,10 @@ class startup(commands.Cog):
 
                     if updated_guild_config != current_guild_config_data:
                         functions.save_json(updated_guild_config, path_for_json_func)
-                        print(f"Config for {file} in {bot_config_dir} updated to match default structure.")
+                        print(f"Config for {file} in {config_dir} updated to match default structure.")
 
-        for guild in self.client.guilds:
-            if not f"{str(guild.id)}.json" in os.listdir(os.path.join("config", self.client.main_name)):
-                source_path = os.path.join("config", "default_config.json")
-                destination_path = os.path.join("config", self.client.main_name, f"{str(guild.id)}.json")
-                shutil.copy2(source_path, destination_path)
+        refresh_files(functions.load_json("config/default_config"), os.path.join("config", self.client.main_name))
+        refresh_files(functions.load_json("config/default_voice"), os.path.join("config", "voice"))
     
     @commands.Cog.listener()
     async def on_guild_join(self, guild):

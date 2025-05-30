@@ -1,3 +1,4 @@
 {
-    "voice_prompt":"Say the following message"
+    "voice_prompt":"Say the following message",
+    "voice_gender":0
 }

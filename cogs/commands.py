@@ -89,10 +89,18 @@ class Commands(commands.Cog):
         else:
             await interaction.response.send_message(f"{module.name} already has that value", ephemeral=True)
 
-    @app_commands.command(name="voice", description="Set a custom prompt for TTS, example provided in /help command.")
-    async def voice(self, interaction: discord.Interaction, prompt: str):
+    voice = app_commands.Group(
+        name='voice', 
+        description='Voice commands', 
+        allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=False), 
+        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=False, private_channel=False),
+        default_permissions=discord.Permissions(administrator=True)
+    )
+
+    @voice.command(name="prompt", description="Set a custom prompt for TTS, example provided in /help command.")
+    async def voice_prompt(self, interaction: discord.Interaction, prompt: str):
         if(len(prompt)>100):
-            await interaction.response.send_message(f"Voice prompt cannot be more than 1100 characters long.", ephemeral=True)
+            await interaction.response.send_message(f"Voice prompt cannot be more than 100 characters long.", ephemeral=True)
             return
         if not f"{str(interaction.user.id)}.json" in os.listdir(os.path.join("config", "voice")):
                 source_path = os.path.join("config", "default_voice.json")
@@ -100,6 +108,21 @@ class Commands(commands.Cog):
                 shutil.copy2(source_path, destination_path)
         config = functions.load_json(f"config/voice/{interaction.user.id}")
         config["voice_prompt"] = prompt
+        functions.save_json(config, f"config/voice/{interaction.user.id}")
+        await interaction.response.send_message(f"Voice prompt set", ephemeral=True)
+
+    @voice.command(name="gender", description="Set voice gender.")
+    @app_commands.choices(gender=[
+            app_commands.Choice(name="Male", value=0),
+            app_commands.Choice(name="Female", value=1),
+            ])
+    async def voice_gender(self, interaction: discord.Interaction, gender: int):
+        if not f"{str(interaction.user.id)}.json" in os.listdir(os.path.join("config", "voice")):
+                source_path = os.path.join("config", "default_voice.json")
+                destination_path = os.path.join("config", "voice", f"{str(interaction.user.id)}.json")
+                shutil.copy2(source_path, destination_path)
+        config = functions.load_json(f"config/voice/{interaction.user.id}")
+        #config["voice_prompt"]
         functions.save_json(config, f"config/voice/{interaction.user.id}")
         await interaction.response.send_message(f"Voice prompt set", ephemeral=True)
 
