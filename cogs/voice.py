@@ -4,6 +4,7 @@ from discord.ext import commands
 from google import genai
 from google.genai import types # type: ignore
 import io
+import os
 import imageio_ffmpeg # type: ignore
 import scripts.functions as functions
 functions.reload(functions)
@@ -63,7 +64,7 @@ class Voice(commands.Cog):
         else:
             await interaction.response.defer(thinking=True, ephemeral=True)
             try:
-                data = await generate_audio(message)
+                data = await generate_audio(message, get_voice_prompt(interaction.user.id))
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
                 interaction.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: print(f'Player error: {e}') if e else None)
@@ -91,7 +92,7 @@ class Voice(commands.Cog):
                 message.content = message.content[1:]
             
             try:
-                data = await generate_audio(message.content)
+                data = await generate_audio(message.content, get_voice_prompt(message.user.id))
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
                 message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
@@ -100,11 +101,17 @@ class Voice(commands.Cog):
                 return
             await message.reply(content="TTS complete.", delete_after=5)
 
-async def generate_audio(message):
+def get_voice_prompt(id):
+    if f"{str(id)}.json" in os.listdir(os.path.join("config", "voice")):
+        path = os.path.join("config", "voice", f"{str(id)}.json")
+    else:
+        path = os.path.join("config", "default_voice.json")
+    return functions.load_json(path)["voice_prompt"]
+
+async def generate_audio(message, voice_prompt):
     response = genai_client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
-        #TODO:Add per-user voice prompts 
-        contents=f"Say the following message: {message}",
+        contents=f"{voice_prompt}: {message}",
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(

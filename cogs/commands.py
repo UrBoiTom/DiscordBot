@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 import os
 import subprocess
+import shutil
 import scripts.functions as functions
 functions.reload(functions)
 
@@ -87,6 +88,20 @@ class Commands(commands.Cog):
             await interaction.response.send_message(f"Value of {module.name} set to {value}", ephemeral=True)
         else:
             await interaction.response.send_message(f"{module.name} already has that value", ephemeral=True)
+
+    @app_commands.command(name="voice", description="Set a custom prompt for TTS, example provided in /help command.")
+    async def voice(self, interaction: discord.Interaction, prompt: str):
+        if(len(prompt)>100):
+            await interaction.response.send_message(f"Voice prompt cannot be more than 1100 characters long.", ephemeral=True)
+            return
+        if not f"{str(interaction.user.id)}.json" in os.listdir(os.path.join("config", "voice")):
+                source_path = os.path.join("config", "default_voice.json")
+                destination_path = os.path.join("config", "voice", f"{str(interaction.user.id)}.json")
+                shutil.copy2(source_path, destination_path)
+        config = functions.load_json(f"config/voice/{interaction.user.id}")
+        config["voice_prompt"] = prompt
+        functions.save_json(config, f"config/voice/{interaction.user.id}")
+        await interaction.response.send_message(f"Voice prompt set", ephemeral=True)
 
     @app_commands.command(name="update", description="Pulls the latest code from the repository. Can only be used by the bot's owner.")
     @app_commands.check(is_owner)
