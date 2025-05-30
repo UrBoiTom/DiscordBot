@@ -103,6 +103,7 @@ class Voice(commands.Cog):
 async def generate_audio(message):
     response = genai_client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
+        #TODO:Add per-user voice prompts 
         contents=f"Say the following message: {message}",
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
