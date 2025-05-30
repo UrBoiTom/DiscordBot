@@ -4,7 +4,7 @@ from discord.ext import commands
 from google import genai
 from google.genai import types # type: ignore
 import io
-import imageio_ffmpeg
+import imageio_ffmpeg # type: ignore
 import scripts.functions as functions
 functions.reload(functions)
 
