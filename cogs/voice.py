@@ -59,8 +59,8 @@ class Voice(commands.Cog):
 
     @app_commands.command(name="tts", description="AI-based text to speech.")
     async def tts(self, interaction: discord.Interaction, message: str):
-        if(interaction.guild.voice_client is None):
-            await interaction.response.send_message("I am not in any voice channel.", ephemeral=True)
+        if(interaction.guild.voice_client is not interaction.user.voice.channel):
+            await interaction.response.send_message("I am not in the same voice channel as you, or you are not in a voice channel.", ephemeral=True)
         else:
             await interaction.response.defer(thinking=True, ephemeral=True)
             try:
@@ -84,6 +84,14 @@ class Voice(commands.Cog):
         if message.content.startswith("~"):
             if(message.guild.voice_client is None):
                 await message.reply("I am not in any voice channel.", delete_after=5)
+                return
+            
+            if(message.channel is not message.guild.voice_client.channel):
+                await message.reply("This feature must be used in the voice channel side chat the bot is in.", delete_after=5)
+                return
+            
+            if(not message.author.voice or message.author.voice.channel is not message.guild.voice_client.channel):
+                await message.reply("You are not in the voice channel.", delete_after=5)
                 return
 
             if message.content.startswith("~ "):
