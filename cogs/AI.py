@@ -6,6 +6,8 @@ from google.genai import types # type: ignore
 import re
 from datetime import timedelta
 import asyncio
+import io
+import imageio_ffmpeg # type: ignore
 import scripts.functions as functions
 functions.reload(functions)
 
@@ -15,6 +17,12 @@ prompts = functions.load_json('Variables/prompts')
 variables = functions.load_json('Variables/general')
 
 genai_client = genai.Client(api_key=keys["ai_studio_key"])
+
+FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+ffmpeg_options = {
+    'before_options': '-f s16le -ar 24000 -ac 1',
+    'options': '-vn',
+}
 
 class AI(commands.Cog):
     def __init__(self, client):
@@ -87,6 +95,17 @@ class AI(commands.Cog):
                         output = await aistudio_request(prompt_to_send, prompts[self.client.main_name]["system_prompt"])
                     chunks = await functions.chunkify(output)
                     await functions.send_message(message, chunks)
+
+                if message.guild.voice_client is not None and message.author.voice is not None and message.author.voice.channel == message.guild.voice_client.channel and message.channel is message.guild.voice_client.channel:
+                    try:
+                        data = await functions.generate_audio(output, functions.get_voice_prompt(self.client.user.id))
+                        audio_buffer = io.BytesIO(data)
+                        audio_buffer.seek(0)
+                        message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
+                    except Exception as e:
+                        await message.reply(f"Error: {e}", delete_after=10)
+                        return
+                    await message.reply(content="TTS complete.", delete_after=5)
         if(config["Modules"]["Welcome"]):
             if message.type == discord.MessageType.new_member:
                 async with message.channel.typing():

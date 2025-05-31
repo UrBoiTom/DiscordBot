@@ -89,6 +89,27 @@ class Commands(commands.Cog):
         else:
             await interaction.response.send_message(f"{module.name} already has that value", ephemeral=True)
 
+    @config.command(name="voice", description="Changes bot voice config.")
+    @app_commands.choices(gender=[
+            app_commands.Choice(name="Male", value=0),
+            app_commands.Choice(name="Female", value=1),
+            ])
+    async def config_modules(self, interaction: discord.Interaction, prompt: str = None, gender: int = None):
+        if not f"{str(self.client.user.id)}.json" in os.listdir(os.path.join("config", "voice")):
+                source_path = os.path.join("config", "default_voice.json")
+                destination_path = os.path.join("config", "voice", f"{str(self.client.user.id)}.json")
+                shutil.copy2(source_path, destination_path)
+        config = functions.load_json(f"config/voice/{self.client.user.id}")
+        if not prompt and not gender:
+            await interaction.response.send_message(f"No value provided.", ephemeral=True)
+            return
+        if(prompt):
+            config["voice_prompt"] = prompt
+        if(gender):
+            config["voice_gender"] = gender
+        functions.save_json(config, f"config/voice/{self.client.user.id}")
+        await interaction.response.send_message(f"Voice config updated", ephemeral=True)
+
     voice = app_commands.Group(
         name='voice', 
         description='Voice commands', 

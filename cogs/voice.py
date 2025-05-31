@@ -1,16 +1,11 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from google import genai
-from google.genai import types # type: ignore
 import io
 import os
 import imageio_ffmpeg # type: ignore
 import scripts.functions as functions
 functions.reload(functions)
-
-keys = functions.load_json('Variables/keys')
-genai_client = genai.Client(api_key=keys["ai_studio_key"])
 
 FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
 ffmpeg_options = {
@@ -59,12 +54,12 @@ class Voice(commands.Cog):
 
     @app_commands.command(name="tts", description="AI-based text to speech.")
     async def tts(self, interaction: discord.Interaction, message: str):
-        if(interaction.guild.voice_client is not interaction.user.voice.channel):
+        if(interaction.guild.voice_client.channel is not interaction.user.voice.channel):
             await interaction.response.send_message("I am not in the same voice channel as you, or you are not in a voice channel.", ephemeral=True)
         else:
             await interaction.response.defer(thinking=True, ephemeral=True)
             try:
-                data = await generate_audio(message, get_voice_prompt(interaction.user.id))
+                data = await functions.generate_audio(message, functions.get_voice_prompt(interaction.user.id))
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
                 interaction.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: print(f'Player error: {e}') if e else None)
@@ -100,7 +95,7 @@ class Voice(commands.Cog):
                 message.content = message.content[1:]
             
             try:
-                data = await generate_audio(message.content, get_voice_prompt(message.author.id))
+                data = await functions.generate_audio(message.content, functions.get_voice_prompt(message.author.id))
                 audio_buffer = io.BytesIO(data)
                 audio_buffer.seek(0)
                 message.guild.voice_client.play(discord.FFmpegPCMAudio(audio_buffer, executable=FFMPEG_PATH, pipe=True, **ffmpeg_options), after=lambda e: message.reply(f"Player error: {e}", delete_after=10) if e else None)
@@ -108,38 +103,6 @@ class Voice(commands.Cog):
                 await message.reply(f"Error: {e}", delete_after=10)
                 return
             await message.reply(content="TTS complete.", delete_after=5)
-
-def get_voice_prompt(id):
-    if f"{str(id)}.json" in os.listdir(os.path.join("config", "voice")):
-        path = f"config/voice/{str(id)}"
-    else:
-        path = "config/default_voice"
-    return functions.load_json(path)
-
-def voices(num):
-    switcher = {
-        0: "Algenib",
-        1: "Aoede",
-    }
-    return switcher.get(num, "Zephyr")
-
-async def generate_audio(message, config):
-    voice_prompt = config["voice_prompt"]
-    response = genai_client.models.generate_content(
-        model="gemini-2.5-flash-preview-tts",
-        contents=f"{voice_prompt}: {message}",
-        config=types.GenerateContentConfig(
-            response_modalities=["AUDIO"],
-            speech_config=types.SpeechConfig(
-                voice_config=types.VoiceConfig(
-                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=voices(config["voice_gender"]),
-                    )
-                )
-            ),
-        )
-    )
-    return response.candidates[0].content.parts[0].inline_data.data
 
 async def setup(client):
     await client.add_cog(Voice(client))

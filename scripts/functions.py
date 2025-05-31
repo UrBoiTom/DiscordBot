@@ -4,8 +4,11 @@ import importlib
 from PIL import Image
 import requests
 from io import BytesIO
+import asyncio
 import re
 import os
+from google import genai
+from google.genai import types # type: ignore
 
 def reload(module):
     importlib.reload(module)
@@ -97,6 +100,43 @@ async def send_message(message, chunks):
     await message.reply(chunks[0])
     for chunk in chunks[1:]:
         await message.channel.send(chunk)
+
+keys = load_json('Variables/keys')
+genai_client = genai.Client(api_key=keys["ai_studio_key"])
+
+async def generate_audio(message, config):
+    voice_prompt = config["voice_prompt"]
+    def _blocking_generate_audio():
+        return genai_client.models.generate_content(
+        model="gemini-2.5-flash-preview-tts",
+        contents=f"{voice_prompt}: {message}",
+        config=types.GenerateContentConfig(
+            response_modalities=["AUDIO"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name=voices(config["voice_gender"]),
+                    )
+                )
+            ),
+        )
+    )
+    response = await asyncio.wait_for(asyncio.to_thread(_blocking_generate_audio), timeout=180)
+    return response.candidates[0].content.parts[0].inline_data.data
+
+def get_voice_prompt(id):
+    if f"{str(id)}.json" in os.listdir(os.path.join("config", "voice")):
+        path = f"config/voice/{str(id)}"
+    else:
+        path = "config/default_voice"
+    return load_json(path)
+
+def voices(num):
+    switcher = {
+        0: "Algenib",
+        1: "Aoede",
+    }
+    return switcher.get(num, "Zephyr")
 
 def image(url):
     return Image.open(BytesIO(requests.get(url).content))
