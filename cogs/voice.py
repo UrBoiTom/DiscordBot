@@ -124,9 +124,10 @@ def voices(num):
     return switcher.get(num, "Zephyr")
 
 async def generate_audio(message, config):
+    voice_prompt = config["voice_prompt"]
     response = genai_client.models.generate_content(
         model="gemini-2.5-flash-preview-tts",
-        contents=f"{config["voice_prompt"]}: {message}",
+        contents=f"{voice_prompt}: {message}",
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
             speech_config=types.SpeechConfig(
