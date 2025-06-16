@@ -7,9 +7,7 @@ A Discord bot powered by Google's Generative AI (GenAI) designed to provide conv
 *   **Conversational AI:** Engage in conversations by mentioning the bot or replying to its messages. It uses reply chains for context.
 *   **AI-Powered Welcome Messages:** Automatically generates and sends a unique welcome message when a new member joins the server.
 *   **AI-Powered Goodbye Messages:** Automatically generates and sends a goodbye message when a member leaves the server.
-*   **Slash Commands:**
-    *   `/help`: Displays a list of commands and bot features.
-    *   `/tags [user]`: Sends a link to the Danbooru tag group wiki, optionally mentioning a specified user.
+*   **Slash Commands**
 *   **Configurable AI Models:** Choose different Google AI models for different tasks (general chat, welcome/goodbye messages).
 *   **Model Fallback:** Automatically attempts to use a secondary AI model if the primary one fails.
 *   **(Hidden) Timeout Command:** Includes a mechanism for timing out users (triggered via specific bot replies - see code for details).
