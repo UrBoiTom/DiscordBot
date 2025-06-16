@@ -96,8 +96,6 @@ To run the bot after the initial setup:
 *   **Chat:** Mention the bot (`@YourBotName`), use its display name or reply directly to one of its messages to start or continue a conversation.
 *   **Commands:** Use the slash commands registered with Discord:
     *   `/help`: Get help information.
-    *   `/tags`: Get the Danbooru tag wiki link.
-    *   `/tags user:@SomeUser`: Get the link and mention the specified user.
 *   **Welcome/Goodbye:** These messages are triggered automatically when members join or leave the server, provided the bot has permission to see these events and post in the configured system channel.
 
 ## Multi bot support
