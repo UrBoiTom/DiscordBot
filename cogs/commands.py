@@ -188,16 +188,6 @@ class Commands(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f"An error occurred during git pull: {e}", ephemeral=True)
 
-    @app_commands.command(name="tags", description="Sends the Danbooru tag group wiki link and optionally tags a user.")
-    async def tags(self, interaction: discord.Interaction, user: discord.Member = None):
-        button = discord.ui.Button(label='Danbooru Tag Group Wiki', url='https://danbooru.donmai.us/wiki_pages/tag_groups')
-        view = discord.ui.View().add_item(button)
-
-        if user:
-            await interaction.response.send_message(f"{user.mention} Here is the Danbooru tag group wiki.", view=view)
-        else:
-            await interaction.response.send_message('Here is the Danbooru tag group wiki.', view=view)
-
     
     @app_commands.command(name="help", description="See more info about commands")
     async def help_command(self, interaction: discord.Interaction):
@@ -206,7 +196,6 @@ class Commands(commands.Cog):
         # General Commands
         embed.add_field(name="General Commands", value="---", inline=False)
         embed.add_field(name="/help", value="Displays this help message.", inline=True)
-        embed.add_field(name="/tags `[user]`", value="Sends the Danbooru tag group wiki link. Optionally tags a `user`.", inline=True)
 
         # AI Commands
         embed.add_field(name="AI Commands", value="---", inline=False)
