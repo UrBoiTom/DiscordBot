@@ -113,9 +113,8 @@ class Commands(commands.Cog):
     voice = app_commands.Group(
         name='voice', 
         description='Voice commands', 
-        allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=False), 
-        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=False, private_channel=False),
-        default_permissions=discord.Permissions(administrator=True)
+        allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=True), 
+        allowed_contexts=discord.app_commands.AppCommandContext(guild=True, dm_channel=True, private_channel=True)
     )
 
     @voice.command(name="prompt", description="Set a custom prompt for TTS, example provided in /help command.")
